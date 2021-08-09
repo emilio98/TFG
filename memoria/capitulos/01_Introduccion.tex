@@ -1,0 +1,333 @@
+\titlespacing*{\subsection}
+  {0pt}{2\baselineskip}{\baselineskip}
+
+\chapter{Introducción}
+
+La renderización es el proceso de generar una imagen a partir de la descripción de una escena 2D o 3D. Dicho proceso puede ser abordado de muchas formas, siendo nuestro objeto de estudio los renderizadores físicamente realistas que utilizan el algoritmo de \emph{ray-tracing}, denominados \emph{ray tracers}. Los renderizadores físicamente realistas o fotorrealistas utilizan los principios de la física para modelar el comportamiento de la luz y su interacción con la materia. En este capítulo se presentará el algoritmo de ray-tracing y su fundamentación física y matemática, así como también se describirá brevemente el concepto de método de Monte Carlo y su uso dentro de los ray-tracers.
+
+\section{El algoritmo de ray-tracing}
+
+El objetivo de los renderizadores fotorrealistas es crear imágenes de escenas 3D que simulen la realidad de la manera más fiel posible, es decir, buscan generar imágenes que parezcan fotografías reales. La mayor parte de renderizadores fotorrealistas utilizan ray-tracing, un algoritmo que consiste en simular el camino que siguen los rayos de luz a través de la escena para poder así determinar el color de cada píxel de la imagen final.
+
+Hay una serie de objetos y fenómenos que todos los ray tracers deben ser capaces de simular de manera más o menos realista: la cámara desde la que se visualiza la escena, la intersección de rayos con objetos de la escena, la visibilidad de las fuentes de luz desde un punto de la escena, la distribución de la cantidad de luz reflejada y transmitida por la superficie de los objetos (\emph{surface scattering}), la distribución de la luz en la escena y la propagación de los rayos a través de medios diferentes al vacío.
+\subsection{Cámara}
+
+Si queremos generar una imagen realista necesitamos simular el funcionamiento de una cámara real, y la forma en que modelemos la cámara determinará el modo en que la escena es vista. El modelo de cámara más simple utilizado en ray-tracing está basado en la cámara estenopeica, una cámara sin lente consistente en una caja con un pequeño agujero por el que entra la luz y un trozo de papel fotográfico donde queda grabada la imagen.
+
+\begin{figure}[h]
+  \lineskip=-\fboxrule
+  \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
+    \centering
+    \includegraphics[width=0.7\textwidth]{imagenes/figura1_1}
+  \end{minipage}}
+  \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
+    \abovecaptionskip=0pt
+    \caption{The caption text}
+  \end{minipage}}
+\end{figure}
+
+La cámara estenopeica puede ser simulada haciendo una abstracción y suponiendo que el papel de película se encuentra a cierta distancia en la dirección en la que la cámara está apuntando. Tal y como podemos ver en la figura 1.1, uniendo la posición dónde se encuentra la cámara con los filos de la película (near plane) se obtiene una región del espacio con forma de pirámide, que será la región del espacio que será captada en la imagen final. Sin embargo falta determinar que color tendrá la imagen en cada uno de sus píxeles. Para ello se traza un número concreto de rayos que pasan por cada píxel y a continuación se calcula la cantidad de luz que viaja a través de cada rayo trazado, lo cual constituye el principal problema a resolver dentro de los ray tracers. Por último se hace una media de los rayos que pasan por cada píxel para calcular su color.
+
+El modelo de cámara recién presentado, a pesar de ser muy usado dentro de la renderización por ordenador, está bastante alejado del funcionamiento de una cámara actual, por lo que es deseable un modelo más complejo dentro de un renderizador fotorrealista. Esto se consigue simulando la utilización de múltiples lentes que nos permiten conseguir diversos efectos en la imagen final. Por otro lado, es común utilizar un parámetro temporal asociado a los rayos trazados, trazando varios rayos a lo largo del tiempo. La posición de los objetos de la escena puede cambiar en el tiempo, con lo que de esta manera se puede simular que ciertos objetos estén en movimiento al momento de tomar la fotografía. 
+
+
+Aunque puedan utilizarse modelos de cámara más complejos, todos coinciden en que su principal tarea es determinar el espacio dentro de la escena que será captado en la imagen y trazar los rayos correspondientes a cada píxel.
+
+\subsection{Intersección de rayos con objetos de la escena}
+
+Una vez los rayos son trazados por la cámara, estos interseccionarán con objetos de la escena. La primera tarea del renderizador es ser capaz de calcular el punto en que cada rayo intersecciona con la escena, así como calcular las propiedades geométricas locales del objeto interseccionado.
+
+\subsection{Visibilidad}
+
+Recordemos que el objetivo es calcular la cantidad de luz que viaja por cada rayo que llega a la película de la cámara, o lo que es lo mismo, si consideramos el punto dónde el rayo intersecciona con la escena, calcular la cantidad de luz que viaja desde dicho punto en dirección a la cámara. Este proceso de calcular el color que se percibe de un punto de la escena se conoce como \emph{sombreado} o \emph{shading}.
+
+Para calcular la cantidad de luz que es reflejada desde un punto en una dirección, primero es necesario estimar la cantidad de luz que llega a él. Por tanto es esencial que el renderizador sea capaz de determinar si una fuente de luz es visible desde el punto de la escena que está siendo sombreado.
+
+\subsection{Distribución de la dispersión de la luz en superficies}
+
+Llegados a este punto vemos que la forma en que los objetos de la escena reflejan y transmiten la luz que les llega es de gran importancia. Esto depende de las características de la materia que compone el objeto. La función que describe la forma en que los objetos de la escena reflejan la luz que reciben se denomina \emph{función de distribución de reflectancia bidireccional} o \emph{BRDF} (\emph{bidirectional reflectance distribution function}), y la notaremos por:
+
+$$f_r:\mathds{R}^3\times \mathds{S}^2 \times \mathds{S}^2 \rightarrow \mathds{R}^+_0$$
+
+Dónde notamos por $\mathds{S}^2$ a la esfera unidad de $\mathds{R}^3$. De esta manera, sea $p$ un punto en la superficie de un objeto, $\omega _i$ la dirección de un rayo incidente, y $\omega _o$ la dirección de un rayo reflejado, entonces la cantidad de energía reflejada por la superficie del objeto en el punto $p$ desde la dirección $\omega _i$ hacia la dirección $\omega _o$ es $f_r(p,\omega _o, \omega _i)$. Obviamente al tratarse de energía reflejada, si consideramos la esfera cuyo polo norte es la normal en $p$ a la superficie (notada como $n$ en la figura 1.2), si $\omega _i$ se encuentra en el hemisferio inferior de dicha esfera entonces $f_r(p,\omega _o, \omega _i)$ será igual a 0.\\
+
+\begin{figure}[h]
+  \lineskip=-\fboxrule
+  \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
+    \centering
+    \includegraphics[width=0.7\textwidth]{imagenes/figura1_2}
+  \end{minipage}}
+  \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
+    \abovecaptionskip=0pt
+    \caption{The caption text}
+  \end{minipage}}
+\end{figure}
+
+De manera similar podemos definir la función que describe la cantidad de energía transmitida, es decir, la cantidad de energía que atraviesa el objeto y escapa en una dirección. A dicha función la llamaremos \emph{función de distribución de transmitancia bidireccional} o \emph{BTDF} (\emph{bidireccional tramittance distribution function}) y la notamos por $f_t$.
+
+Por último consideramos la función que describe de manera conjunta la energía reflejada y transmitida, la \emph{función de distribución de dispersión bidireccional} o \emph{BSDF} (\emph{bidirectional scattering distribution function}) que notamos por $f$.
+
+En el caso de un objeto que presente reflexión especular perfecta, el BSDF en su superficie se puede describir de manera sencilla, ya que dada una dirección $\omega _i$, toda la luz procedente de esa dirección será reflejada en una única dirección saliente $\omega _o$, que será aquella que forme el mismo ángulo con la normal a la superficie que $\omega _i$. Este sería el caso de un espejo perfecto. Sin embargo la mayor parte de objetos de la vida real no se comportan de esta manera, por lo que en un ray tracer habrá diversos modelos que simulen diferentes materiales.
+
+\subsection{Distribución de la luz}
+
+La radiometría y la óptica geométrica nos otorgan las herramientas físicas y matemáticas que necesitamos para describir el comportamiento de la luz, y forman la base de la mayor parte de algoritmos utilizados en ray-tracing. La radiometría es la ciencia que trata la medición de radiación electromagnética, ya sea visible o no. La óptica geométrica tiene en cuenta propiedades macroscópicas de la luz, que son suficientes para describir la forma en que la luz interacciona con objetos mucho más grandes que su longitud de onda. Por otra parte, no es raro simular fenómenos propios de la óptica física, aunque en nuestro caso no tendremos en cuenta este tipo de fenómenos. Hay una serie de asunciones que haremos acerca del comportamiento de la luz para simplificar el cálculo de la energía radiante en la escena:
+
+\begin{itemize}
+\item Linealidad: El efecto combinado de dos entradas en un sistema óptico es siempre igual a la suma del efecto de cada una de las entradas individualmente.
+\item Conservación de la energía: La energía radiante reflejada o transmitida por una superficie nunca será mayor que la energía incidente sobre dicha superficie.
+  \item Estado de reposo: Se asume que la distribución de la luz en la escena ha alcanzado el equilibrio, por lo que no habrá cambios en la distribución de la radiancia a lo largo del tiempo.
+\end{itemize}
+
+Antes de presentar las magnitudes radiométricas centrales en renderización, vamos a definir el concepto de \emph{ángulo sólido}.
+
+\subsubsection*{Ángulo sólido}
+
+Como ya sabemos, en una circunferencia de radio unidad, el ángulo en radianes entre dos radios es igual a la longitud de circunferencia comprendida entre ellos (figura 1.3). Conceptualmente, el ángulo sólido se trata de una extensión de los ángulos planos a $\mathds{R}^3$, y mide el tamaño con el que se ve un objeto desde un punto. Podemos entender un objeto como una superficie simple, regular a trozos y orientable.
+
+\begin{definicion}
+  Consideremos un punto $P \in \mathds{R}^3$ y sea $A \subset \mathds{R}^3/\{P\}$ una superficie simple, regular a trozos y orientable. Se denomina ángulo sólido subtendido por $A$ desde $P$ a la región del espacio $\{P + \lambda (V-P) \in \mathds{R}^3 : \lambda \in (0,1], V \in A\}$, y se nota por $\Omega(A)$. 
+\end{definicion}
+
+\begin{definicion}
+    Sea $P \in \mathds{R}^3$ y consideremos la esfera unidad con centro $P$, $\mathcal{B}(P,1)$. Sea $\pi :\mathds{R}^3/\{P\}\rightarrow \mathcal{B}(P,1)$ la proyección sobre la esfera $\mathcal{B}(P,1)$, es decir, $\pi(r) = P + \frac{r-P}{\|r-P\|}$. Sea $A \subset \mathds{R}^3/\{P\}$ una superficie simple, regular a trozos y orientable, y tomamos $I = \int _{\pi(A)} dS$. Entonces diremos que el ángulo sólido subtendido por $A$ desde $P$ mide $I$ estereorradianes.
+\end{definicion}
+
+\begin{figure}[h]
+  \lineskip=-\fboxrule
+  \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
+    \centering
+    \includegraphics[width=0.3\textwidth]{imagenes/figura1_5}
+  \end{minipage}}
+  \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
+    \abovecaptionskip=0pt
+    \caption{The caption text}
+  \end{minipage}}
+\end{figure}
+
+\begin{figure}[h]
+  \lineskip=-\fboxrule
+  \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
+    \centering
+    \includegraphics[width=0.6\textwidth]{imagenes/figura1_4}
+  \end{minipage}}
+  \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
+    \abovecaptionskip=0pt
+    \caption{The caption text}
+  \end{minipage}}
+\end{figure}
+
+En la definición anterior hemos usado $dS$ para denotar la integral de superficie. Como vemos el ángulo sólido subtendido por un objeto claramente depende del punto de referencia $P$. Sin embargo, supongamos que queremos medir el ángulo sólido subtendido por un objeto desde un punto $P$. En renderización se trabaja con $\mathds{R}^3$ como espacio afín, por lo que podemos aplicar una traslación del marco de referencia para situar $P$ en el origen de coordenadas. Por tanto, a efectos prácticos siempre podemos suponer que trabajamos en la esfera unidad $\mathds{S}^2$. Vamos a definir ahora la función que mide el ángulo sólido en la esfera unidad:
+
+\begin{definicion}
+  Sea $\mathscr{S}$ la familia de superficies simples contenidas en la esfera unidad $\mathds {S}^2$, definimos la función $\sigma :\mathscr{S} \rightarrow \mathds{R}^+_0$ como:
+
+  $$\sigma(C) = \int_C \text{ }dS , \hspace{0.5cm} \forall C\in \mathscr{S}$$
+
+  La función $\sigma$ mide el ángulo sólido subtendido por cada superficie simple de la esfera.
+\end{definicion}
+
+
+
+Vamos ahora a derivar una serie de resultados básicos relacionados con el ángulo sólido que nos serán útiles durante el resto de trabajo. Consideremos la parametrización de la esfera unidad $\Theta:[0,\pi ]\times [0,2\pi ]\rightarrow \mathds{R}^3$, con:
+
+$$\Theta(\theta ,\varphi ) = ( \sin \theta \cos \varphi,  \sin \theta \sin \varphi , \cos \theta),\hspace{0.5cm}  \forall (\theta , \varphi)\in [0,\pi ]\times [0,2\pi ]$$
+
+Derivando parcialmente $\Theta$ y calculando el producto vectorial de sus derivadas parciales vemos que:
+
+$$\Theta _\theta(\theta ,\varphi ) = \frac{\partial \Theta}{\partial \theta}(\theta ,\varphi ) = (\cos\theta\cos\varphi, \cos\theta\sin\varphi, -\sin\theta)$$
+
+$$\Theta _\varphi(\theta ,\varphi ) = \frac{\partial \Theta}{\partial \varphi}(\theta ,\varphi ) = (-\sin\theta\sin\varphi, \sin\theta\cos\varphi, 0)$$
+
+$$\Theta _\theta(\theta ,\varphi )\times \Theta _\varphi(\theta ,\varphi ) = (\sin^2\theta\cos\varphi,\sin^2\theta\sin\varphi,\sin\theta\cos\theta)$$
+
+Con lo que concluimos que:
+
+$$\sigma (C) = \int_C \text{ }dS = \iint_{\Theta^{-1}(C)}\|\Theta _\theta(\theta ,\varphi )\times \Theta _\varphi(\theta ,\varphi )\| d\theta d\varphi = \iint_{\Theta^{-1}(C)} \sin\theta d\theta d\varphi \hspace{0.2cm} \forall C \in \mathscr{S}$$
+
+De aquí en adelante, por comodidad, notaremos por $\pi$ a la proyección sobre la esfera unidad $\mathds{S}^2$, es decir, $\pi(p)=\frac{p}{\|p\|}$, $\forall p \in \mathds{R}^3/\{(0,0,0)\}$. Pasamos ahora a demostrar la siguiente proposición:
+
+\begin{proposicion}
+  Sea $\sigma$ la medida del ángulo sólido, y sea $C$ una superficie en $\mathds{R}^3/\{(0,0,0)\}$ simple, regular a trozos y orientable, tal que cada recta que empiece en el origen y acabe en un punto de $C$ sólo interseccione con $C$ una vez. Consideramos la función $g:\mathds{R}^3/\{(0,0,0)\} \rightarrow \mathds{R}^3$, con $g(p)=\frac{p}{\|p\|^3}$. Entonces se cumple que:
+
+ \begin{equation}
+ \sigma (\pi(C)) = \int _C g \text{ }dS 
+ \end{equation}
+ 
+\end{proposicion}
+
+\begin{figure}[h]
+  \lineskip=-\fboxrule
+  \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
+    \centering
+    \includegraphics[width=0.6\textwidth]{imagenes/figura1_6}
+  \end{minipage}}
+  \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
+    \abovecaptionskip=0pt
+    \caption{The caption text}
+  \end{minipage}}
+\end{figure}
+\newpage
+
+\begin{proof}
+
+Sea $C_r$ la porción del espacio comprendida entre $C$ y $\pi (C)$, y sea $\partial C_r$ su frontera. Sea $C_p = \partial C_r /(C\cup \pi(C))$ la superficie que delimita lateralmente la región $C_r$. Vamos ahora a calcular la divergencia de $g$. Sea $(x,y,z)\in \mathds{R}^3$:
+
+\begin{align*}
+  \textrm{div } g (x,y,z) &= \frac{\partial g}{\partial x}(x,y,z) + \frac{\partial g}{\partial y}(x,y,z) + \frac{\partial g}{\partial z} (x,y,z) =\\
+  & = \frac{(x^2+y^2+z^2)^{\frac{3}{2}}-3x^2(x^2+y^2+z^2)^{\frac{1}{2}}}{(x^2+y^2+z^2)^3} +\\
+  & + \frac{(x^2+y^2+z^2)^{\frac{3}{2}}-3y^2(x^2+y^2+z^2)^{\frac{1}{2}}}{(x^2+y^2+z^2)^3} +\\
+  &+ \frac{(x^2+y^2+z^2)^{\frac{3}{2}}-3z^2(x^2+y^2+z^2)^{\frac{1}{2}}}{(x^2+y^2+z^2)^3} = 0
+\end{align*}
+
+Y, por tanto, aplicando el teorema de divergencia tenemos que:
+
+
+$$\int _{\partial C_r}g\text{ } dS = \iiint _{C_r}\text{div } g \text{ }dx dy dz = 0$$
+
+Sea $C_p = \bigcup _{i=1}^n S_i$ una descomposición finita de $C_p$ como unión de superficies simples y regulares. Fijado $i\in \{1\ldots n\}$, sea $\Psi^i : W^i \rightarrow \mathds{R}^3$ una parametrización simple y suave de $S_i$ orientada mediante la normal exterior, y sean $\Psi^i_u$, $\Psi^i_v$ sus derivadas parciales. Es fácil ver que dado un punto $P\in S_i$, se tiene que el vector que va desde el origen hasta $P$ es perpendicular a la normal a $S_i$ en $P$. Por tanto tenemos que:
+
+$$ \int_{S_i} g\text{ }dS = \iint _{W^i} \frac{<\Psi^i(u,v) | (\Psi^i_u(u,v)\times \Psi^i_v (u,v))>}{\|\Psi^i(u,v)\|^3}\text{ } du dv = 0$$
+
+
+Dónde se ha usado que $<\Psi^i(u,v) | (\Psi^i_u(u,v)\times \Psi^i_v (u,v))> = 0$, $\forall (u,v)\in W^i$, ya que el producto vectorial de las derivadas parciales es igual a la normal a la superficie y el producto escalar de vectores perpendiculares es nulo. Sabemos que $\partial C_i = C\cup \pi(C) \cup C_p$, y usando las dos igualdades anteriores tenemos que:
+
+$$0 = \int _{\partial C_r}g\text{ } dS = \int _{C}g\text{ } dS + \int _{\pi(C)}g\text{ } dS $$
+
+Sea $\Phi :W\rightarrow \mathds{R}^3$, una parametrización simple y suave de $\pi (C)$ orientada con la normal exterior, y sean $\Phi _u$, $\Phi _v$ sus derivadas parciales. Como $\pi (C)$ está contenido en la esfera unidad, para todo $(u,v)\in W$ se cumple que $-\Phi(u,v) = \frac{\Phi_u(u,v)\times \Phi_v (u,v)}{\|\Phi_u(u,v)\times \Phi_v (u,v)\|}$ y que  $\|\Phi(u,v)\| = 1$, y por ello:
+
+\begin{align*}
+  \int _{\pi(C)}g\text{ } dS &= \iint _{W} \frac{<\Phi(u,v) | (\Phi_u(u,v)\times \Phi_v (u,v))>}{\|\Phi(u,v)\|^3}\text{ } du dv =\\
+  &= - \iint _{W} \|\Phi_u(u,v)\times \Phi_v (u,v)\| \|\Phi(u,v)\|^2\text{ } du dv = - \int _{\pi(C)}\text{ } dS
+\end{align*}
+
+Y por tanto deducimos que:
+
+\begin{align*}
+  & 0 = \int _{C}g\text{ } dS + \int _{\pi(C)}g\text{ } dS = \int _{C}g\text{ } dS - \int _{\pi(C)}\text{ } dS \Rightarrow \\
+  & \Rightarrow \int _{C}g\text{ } dS = \int _{\pi(C)}\text{ } dS = \sigma (\pi(C))
+\end{align*}
+
+Tal y como queríamos.\\
+\end{proof}
+
+Podemos ahora introducir un concepto bastante natural viendo la forma en que hemos definido la función $\sigma$.
+
+\begin{definicion}
+  Sea $C\subset \mathds{S}^2$ una superficie simple y sea $h: C\rightarrow \mathds{R}$ un campo escalar, $i: C\rightarrow \mathds{R}^3$ un campo vectorial. Entonces la integral respecto al ángulo sólido de las funciones $h$ e $i$ se define como:
+
+  $$\int _C h\text{ } d\sigma = \int _C h\text{ } dS$$
+
+   $$\int _C i\text{ } d\sigma = \int _C i\text{ } dS$$
+  
+\end{definicion}
+
+Y por último podemos generalizar la proposición 1.1 de la siguiente manera:
+
+\begin{proposicion}
+  
+Sea $C$ una superficie en $\mathds{R}^3/\{(0,0,0)\}$ simple, regular a trozos y orientable, tal que cada recta que empiece en el origen y acabe en un punto de $C$ sólo interseccione con $C$ una vez. Sea $h: \mathds{S}^2\rightarrow \mathds{R}^+_0$ un campo escalar no negativo. Consideramos la función $g:\mathds{R}^3/\{(0,0,0)\} \rightarrow \mathds{R}^3$, con $g(p)=\frac{p}{\|p\|^3}$. Entonces se cumple que:
+
+ \begin{equation}
+   \int_{\pi(C)} h\text{ }d\sigma = \int _C (h\circ \pi) g \text{ }dS 
+ \end{equation}
+ 
+  \end{proposicion}
+
+\subsubsection*{Medida de la luz}
+
+Una vez nos hemos familiarizado con el concepto de ángulo sólido, vamos a presentar una serie de magnitudes radiométricas básicas. Todas estas magnitudes dependen de la longitud de onda, y aunque obviaremos esto, es importante tenerlo en cuenta.
+
+\begin{itemize}
+\item \textbf{Energía radiante}: Las fuentes de luz emiten fotones, cada uno de los cuales porta una cantidad de energía que depende de la longitud de onda. La energía se mide en julios (j), y notaremos por $Q$ a la función que mide la energía en una región durante un periodo de tiempo.
+\item \textbf{Flujo radiante}: La energía está medida sobre algún periodo de tiempo, y por tanto, bajo la asunción de estado de reposo, es más conveniente trabajar con magnitudes que se midan en un instante de tiempo. El flujo radiante se define como la cantidad total de energía por unidad de tiempo que atraviesa una región. Se mide en vatios (W), y notaremos por $\Phi$ a la función que mide el flujo radiante en una región.
+\item \textbf{Irradiancia y emitancia radiante}: Las dos magnitudes miden el flujo radiante por unidad de superficie, en el caso de la irradiancia se mide el flujo llegando a la superficie, y en el caso de la emitancia radiante se mide el flujo saliendo de la superficie. Se mide en vatios por metro cuadrado (W/m$^{-2}$) y notaremos por $E$ a la función que mide la irradiancia.
+
+\item \textbf{Radiancia incidente y saliente}: Se trata de la magnitud que más utilizaremos. La irradiancia nos da una medida del flujo radiante por unidad de superficie, pero no tiene en cuenta que el flujo tiene una distribución direccional, es decir, la cantidad de flujo que llega a una superficie varía según la dirección del flujo incidente. La radiancia mide el flujo por unidad de superficie proyectada y por unidad de ángulo sólido. Cuando hablamos de superficie proyectada nos referimos a que calculamos el flujo en una superficie hipotética que es perpendicular a la dirección del flujo incidente/saliente. Se mide en vatios por estereorradián por metro cuadrado (W sr$^{-1}$ m$^{-2}$) y notaremos por $L: \mathds{R^3} \times \mathds{S}^2\rightarrow \mathds{R}^+_0$ a la función que mide la radiancia.
+
+  Notemos por $\mathcal{H}^2(n)$ al hemisferio superior de la esfera unidad cuyo polo norte es el vector $n$. Si consideramos una superficie con normal $n$ en un punto $p$, la radiancia generalmente no es continua al pasar de una dirección de $\mathcal{H}^2$ a una dirección del hemisferio inferior. Por tanto tiene sentido distinguir entre la función radiancia encima de la superficie y debajo de ella:
+
+  $$L^+(p,\omega) = \lim_{t\rightarrow 0^+} L(p+tn, \omega)$$
+  $$L^-(p,\omega) = \lim_{t\rightarrow 0^-} L(p+tn, \omega)$$
+
+  Podemos definir por tanto las funciones de radiancia incidente y radiancia saliente como sigue (siempre consideramos que la dirección $\omega$ apunta hacia fuera de la superficie, aunque sea radiancia incidente):
+
+  \[ L_i(p,\omega) = 
+   \begin{cases} 
+      L^+(p,- \omega ),  & \omega \cdot n > 0 \\
+      L^-(p,- \omega ),  & \omega \cdot n < 0
+   \end{cases}
+  \] 
+  \\
+  \[L_s(p,\omega) = 
+   \begin{cases} 
+      L^+(p, \omega ),  & \omega \cdot n > 0 \\
+      L^-(p,\omega ),  & \omega \cdot n < 0
+   \end{cases}
+  \] 
+  
+\end{itemize}
+
+Por como están definidas las magnitudes anteriores tenemos las siguientes relaciones entre ellas:
+
+\begin{itemize}
+\item La irradiancia en un punto $p\in \mathds{R}^3$ perteneciente a una superficie con normal $n$ en $p$ cumple que:
+  $$ E(p) = \int _{\mathds{S}^2} L_i(p,\omega ) |n \cdot \omega| \text{ } d\sigma(\omega )$$
+
+  Dónde se multiplica por $| n\cdot \omega |$ debido al hecho de que la radiancia se mide respecto a la superficie proyectada. Notar que $| n\cdot \omega |$ es igual al coseno del ángulo que forman.
+
+\item El flujo en una superficie $A\subset \mathds{R}^3$ cumple que:
+  $$\Phi (A)= \int _A E\text{ }dS$$
+\end{itemize}
+
+Por último, la radiancia saliente de una superficie en un punto $p \in \mathds{R}^3$ y en una dirección $\omega _o \in \mathds{S}^2$ se puede calcular como sigue, con $n$ la normal a la superficie en $p$:
+\begin{equation}\label{dispersion}
+L_s(p,\omega _o) = \int _{\mathds{S}^2}f(p,\omega _o, \omega _i) L_i(p, \omega _i) |n\cdot \omega _i|\text{ }d\sigma (\omega _i)
+\end{equation}
+
+donde $f$ es la $BDSF$ descrita en el apartado anterior. Esta ecuación se conoce como ecuación de dispersión y es fundamental en renderización, ya que es la ecuación utilizada para estimar el color de los puntos con los que interseccionan los rayos trazados por la cámara, estimando el valor de radiancia saliente en dirección a la cámara en el punto de intersección. La complejidad de la integral dependerá de la escena que estemos renderizando, y como podemos intuir no tiene una solución analítica.
+
+Hay que destacar que el algoritmo de ray-tracing tiene una naturaleza recursiva, ya que con el objetivo de estimar el color de un punto, se trazarán rayos desde ese punto en direcciones dónde el valor de radiancia incidente o de BDSF sea grande. Dicho rayo puede volver a interseccionar con otro componente de la escena, del cuál tendremos que estimar a su vez la radiancia saliente en dirección al punto inicial.
+
+\subsection{Propagación de los rayos}
+
+En todo lo descrito con anterioridad hemos supuesto que los rayos se propagan por el vacío, por lo que la energía radiante que viaja por ellos no se ve atenuada. Sin embargo en la vida real ciertos componentes ambientales como la niebla o el humo invalidan dicha suposición. Es por ello que es habitual que los ray tracers simulen este tipo de efectos ambientales, dónde la energía radiante se ve atenuada al viajar por el espacio en presencia de partículas en suspensión. No obstante, en lo referente a los objetivos de este trabajo podemos obviar este tipo de efectos.
+
+\section{Concepto de método de Monte Carlo y su relación con el ray-tracing}
+
+Los métodos de Monte Carlo son un conjunto de algoritmos basados en el muestreo aleatorio. Sus objetivos son:
+
+\begin{itemize}
+\item Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico, sea $X:\Gamma \rightarrow \mathds{R}^n$ un vector aleatorio y sea $P_X$ su distribución de probabilidad, generar un conjunto de muestras $\{x^{(r)}\}_{r=1}^R$ que sigan dicha distribución. 
+\item Estimar la esperanza de determinadas funciones bajo dicha distribución, es decir, sea $g$ una función definida en $\mathds{R}^n$, estimar el valor de:
+$$ E[g(X)] = \int P(X)g(X)\text{ }dX$$
+\end{itemize}
+
+Vemos que una vez resolvamos el primer problema, podemos usar el siguiente estimador para resolver el segundo:
+
+$$\overset{\wedge}{g} = \frac{1}{R}\sum_{r=1}^R g(x^{(r)})$$
+
+Ya que es claro que si las muestras $\{x^{(r)}\}$ siguen la distribución $P_X$, entonces la esperanza del estimador cumple que:
+
+$$E[\overset{\wedge}{g}] = E[\frac{1}{R}\sum_{r=1}^R g(x^{(r)})] = \frac{1}{R}\sum_{r=1}^R E[g(x^{(r)})] = \frac{1}{R} R E[g(X)] = E[g(X)]$$
+
+Habitualmente trabajaremos con vectores aleatorios continuos, así que salvo que se especifique lo contrario, así lo supondremos. Supongamos que queremos estimar la integral de una función $g:K\rightarrow \mathds{R}$ en lugar de su esperanza. Sea $X:\Gamma \rightarrow K$ un vector aleatorio tal que su función de densidad $f_X$ cumple que $f_X(s)\neq 0$ para todo $s$ tal que $|g(s)|>0$, y sea $\{x^{(r)}\}$ un conjunto de muestras siguiendo la distribución de probabilidad de $X$. Entonces el siguiente estimador 
+
+$$g' = \frac{1}{R}\sum_{r=1}^R \frac{g(x^{(r)})}{f_X(x^{(r)})}$$
+
+converge a la integral de $g$ en $K$. En efecto:
+
+\begin{align*}
+E[g'] &= E[\frac{1}{R}\sum_{r=1}^R \frac{g(x^{(r)})}{f_X(x^{(r)})}] = \frac{1}{R}\sum_{r=1}^R E[\frac{g(x^{(r)})}{f_X(x^{(r)})}] =\\
+&= \frac{R}{R}  \int _K \frac{g(x)}{f_X(x)}f_X(x) \text{ }dx = \int _K g(x) \text{ }dx
+\end{align*}
+
+A este estimador lo llamaremos estimador Monte Carlo de $g$. La elección de la distribución de probabilidad respecto a la que tomamos las muestras es clave, ya que seleccionar una distribución de probabilidad que asigne mayores probabilidades a los puntos donde la función $g$ es mayor supone una importante técnica para reducir la varianza del estimador.
+
+Los métodos de Monte Carlo son una importante herramienta dentro del ray-tracing. El motivo de que estos métodos sean más efectivos en renderización que otras técnicas de integración numérica es que el ratio de convergencia es independiente de la dimensionalidad del espacio muestreado. Estos métodos son utilizados, entre otras cosas, para estimar el valor de la ecuación de dispersión (\ref{dispersion}), de ahí su importancia.
+
+\section{Objetivos}
+El principal objetivo de este trabajo es estudiar el uso de métodos de Monte Carlo en renderizadores 3D físicamente realistas para estimar numéricamente la distribución de radiancia en el espectro visible dentro de la escena renderizada. Asimismo se estudiarán diferentes algoritmos descritos en la literatura que reducen la varianza del estimador Monte Carlo, obteniendo así mejores resultados sin tener que aumentar el número de muestras.
+
+
+

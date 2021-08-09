@@ -1,0 +1,39 @@
+LookAt -8 4 0   0 0 0   0 1 0
+
+Camera "perspective" "float fov" [30]
+Film "image"  
+"integer xresolution" [800] "integer yresolution" [800]
+    "string filename" "prueba3.exr"
+
+# zoom in by feet
+# "integer xresolution" [1500] "integer yresolution" [1500]
+#	"float cropwindow" [ .34 .49  .67 .8 ]
+
+Sampler "halton" "integer pixelsamples" [10]
+
+Integrator "path"
+
+WorldBegin
+
+AttributeBegin
+Material "matte" "color Kd" [0 0 0]
+Translate -1 1 -1
+AreaLightSource "area"  "color L" [2000 2000 2000] "integer nsamples" [10]
+Shape "sphere" "float radius" [0.4]
+AttributeEnd
+
+AttributeBegin
+Rotate 30 0 1 0
+    Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]
+        "float roughness" [.025]
+Shape "rectangle" "float width" [1] "float height" [1]
+AttributeEnd
+
+AttributeBegin
+  Material "matte" "color Kd" [.5 .5 .8]
+Shape "trianglemesh" "point P" [ 10 -1000 -1000 10 -1000 1000 10 1000 1000 10 1000 -1000 ]
+      "float uv" [ 0 0 5 0 5 5 0 5 ]
+	"integer indices" [ 0 1 2 2 3 0]
+AttributeEnd
+
+WorldEnd
