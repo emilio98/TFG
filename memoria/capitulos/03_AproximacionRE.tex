@@ -1,0 +1,172 @@
+\titlespacing*{\subsection}
+  {0pt}{2\baselineskip}{\baselineskip}
+
+\chapter{Aproximación de la ecuación de renderización}
+
+En este capítulo describiremos dos posibles formas de aproximar la ecuación de renderización descrita en \ref{renderingEquation}.
+
+\section{Iluminación directa}
+Se trata de la aproximación más sencilla de la ecuación de renderización, ya que no tiene en cuenta la iluminación indirecta. Una vez se calcula la intersección del rayo de cámara con la escena, desde ese punto se muestrean todas las fuentes de luz de la escena. La mayoría de fuentes de luz serán fuentes de luz de área, ya que son las fuentes de luz que más se aproximan a las fuentes de luz reales.
+
+El método más sencillo para muestrear una fuente de luz de área es generar una muestra que siga una distribución uniforme en toda su superficie y transformar la función de densidad, que será constante, para obtener la función de densidad respecto al ángulo sólido, en virtud de la ecuación \ref{cambioArea}. Sin embargo esta forma de muestreo puede llegar a implicar alta varianza dependiendo de la escena. En el siguiente capítulo veremos diferentes formas de muestrear fuentes de luz en el caso de ciertas figuras geométricas.
+
+Si solo se muestrean direcciones correspondientes a fuentes de luz, aunque la radiancia en esas direcciones sea alta, puede que la función BSDF tome valores bajos en esas direcciones y por tanto nos lleve a una mala aproximación del color en el punto. Es por esto que se suele aplicar muestreo de importancia múltiple en este tipo de algoritmo, muestreando también la función BSDF. Es por esto que siempre se podrán generar muestras siguiendo la distribución de los diferentes tipos de BSDF en los ray tracers. Además se tiene en cuenta si el punto que está siendo sombreado pertenece a una superficie puramente especular, en cuyo caso se trazan rayos en las correspondientes direcciones.
+
+\section{Path-Tracing}
+Antes de estudiar el enfoque tomado en este algoritmo y su justificación, presentaremos una serie de definiciones y resultados previos.
+
+\begin{definicion}[Operador lineal]
+  Sean $S$, $M$ dos espacios normados sobre el mismo cuerpo $\mathds{K}$, un operador lineal de $S$ en $M$ es una aplicación $T:S\rightarrow M$ cumpliendo que:
+  $$T(\lambda u + v) = \lambda T(u) + T(v)\hspace{1cm} \forall u,v\in S, \forall \lambda\in\mathds{K} $$
+\end{definicion}
+
+\begin{teorema}[Teorema del punto fijo]
+Sea $S$ un espacio de Banach no vacío, y sea $T:S\rightarrow S$ un operador lipschitziano con constante de lipschitz $l<1$. Consideremos $f_0\in S$ arbitrario, y sea $\{f_n\}_{n\in\mathds{N}_0}$ una sucesión de elementos de $S$ cumpliendo que $f_n = T(f_{n-1})$, $\forall n\in\mathds{N}$. Entonces $\{f_n\}_{n\in\mathds{N}_0}$ converge al único punto fijo de $T$, $f\in S$ tal que $T(f)=f$.
+\end{teorema}
+
+\begin{definicion}[Operador integral de Fredholm]
+  Sea $A\subseteq \mathds{R}^n$, sea $(A, \mathcal{A}, \rho_1)$ un espacio de medida, y sea $k:A\times A\rightarrow \mathds{R}$ una función absolutamente integrable ($k\in L_1(A\times A)$) y acotada. Entonces se define el operador integral de Fredholm como:
+  \begin{align*}
+    K_k:L_1(A)&\rightarrow L_1(A)\\
+    f&\rightarrow K_k(f) = \int_A k(\cdot,y) f(y) dy
+  \end{align*}  
+\end{definicion}
+
+\begin{definicion}[Ecuación integral de Fredholm de segundo tipo]
+  Sea $A\subseteq \mathds{R}^n$, sea $(A, \mathcal{A}, \rho_1)$ un espacio de medida, y sea $k:A\times A\rightarrow \mathds{R}$ una función absolutamente integrable ($k\in L_1(A\times A)$) y acotada. Sea $K_k$ el operador integral de Fredholm, y sea $f:A\rightarrow \mathds{R}$ una función. Supongamos que queremos hallar una función $u:A\rightarrow \mathds{R}$ satisfaciendo:
+$$u = f+K(u) $$
+
+  A esta ecuación la llamamos ecuación integral de Fredholm de segundo tipo.
+  \end{definicion}
+
+\begin{teorema}\label{convergeFred}
+  Consideramos la ecuación integral de Fredholm de segundo tipo que acabamos de definir:
+  $$u = f+K(u) $$
+
+  Entonces si $K$ es lipschitziano con constante $l<1$, la ecuación tiene solución. Dicha solución viene dada por la suma de la serie de Neumann:
+  $$u=\sum_{i=0}^{\infty} K^i(f) $$
+
+  donde $K^i:=K\circ \overset{(i}{\ldots}\circ K$.
+  \end{teorema}
+\begin{proof}
+  Supongamos que $K$ es lipschitziano con constante $l<1$. Consideramos el operador $T(s):=K(s)+f$. Como podemos ver:
+$$\|Tu_1-Tu_2\| = \|Ku_1-Ku_2\| \leq l\|u_1-u_2\|\text{, } \forall u_1,u_2\in A$$
+
+  Por tanto $T$ también es un operador lipschitziano con constante $l<1$, por lo que podemos aplicar el teorema del punto fijo de Banach. Tomamos $u_0\in L_1(A)$ arbitrario, y definimos la sucesión $\{u_n\}_{n\in\mathds{N}_0}$ como $u_n := T(u_{n-1}) = K(u_{n-1})+f$, $\forall n\in\mathds{N}$. Es fácil ver que:
+  $$u_n = \sum_{i=0}^{n-1}K^i(f) + K^n(u_0)$$
+
+Entonces $\{u_n\}_{n\in\mathds{N}_0}$ convergerá al único punto fijo de $T$, $u\in L_1(A)$. Vemos por otro lado que $lim_{n\to +\infty}K^n(u_0) = 0$ por ser $K$ contractiva. Concluimos que $\lim_{n\to +\infty}u_n =lim_{n\to +\infty} \sum_{i=0}^{n}K^i(f) = u$ es la única solución de la ecuación de Fredholm, como queríamos.
+
+  \end{proof}
+
+Ya podemos desarrollar el enfoque tomado en este algoritmo. Consideramos la función $t:\mathds{R}^3\times \mathds{S}^2\rightarrow \mathds{R}^3$ que asigna a cada rayo (definido por su punto inicial y su dirección) su intersección más cercana con la escena. Es fácil ver que entonces $L_i(p,\omega) = L_s(t(p,\omega), -\omega)$, $\forall p\in\mathds{R}^3$, $\forall \omega\in\mathds{S}^2$. Por tanto, notando $L=L_s$ por comodidad, y fijando $p\in\mathds{R}^3$, podemos reescribir la ecuación de la siguiente manera:
+\begin{equation}\label{rendEq2}
+L(p,\omega _o) = L_e(p,\omega_o) + \int _{\mathds{S}^2}f(p,\omega _o, \omega _i) L(t(p,\omega_i), -\omega _i) |n\cdot \omega _i|\text{ }d\mu (\omega _i) 
+\end{equation}
+
+Y podemos entender la ecuación anterior como una ecuación de Fredholm en la que el operador integral es:
+$$K(g) := \int _{\mathds{S}^2}f(p,\cdot, \omega _i) g(t(p,\omega_i), -\omega _i) |n\cdot \omega _i|\text{ }d\mu (\omega _i)$$
+
+Como vemos, el operador $K$ es lineal. Vemos que en cualquier sistema físicamente realista se cumple que $K$ es lipschitziano con constante $l<1$, respecto a una norma adecuada, a causa de la absorción de energía por parte de las superficies. Por tanto podemos aproximar la función $L$ a partir de la serie de Neumann:
+\begin{equation}\label{Neumann}
+L_k = \sum_{i=0}^kK^i(L_e)\text{, }\forall k\in\mathds{N}_0
+\end{equation}
+
+La radiancia media incidente sobre un píxel $P$ de la imagen final se puede calcular de la siguiente manera:
+\begin{equation}\label{pixel}
+\overline{L}_P=\frac{1}{|P|}\int_{S(P)}L(t(x_{camara}, \omega), -\omega)d\mu
+\end{equation}
+
+donde $S(P)$ representa el conjunto de direcciones que atraviesan el píxel $P$, $x_{camara}$ es la posición de la cámara, y $|P|$ es el área del píxel $P$. Consideramos ahora el problema de evaluar el siguiente operador:
+\begin{equation}\label{operadorJ}
+J_g(L)=\int_{\mathds{S}^2}g(\omega)L(t(x_{camara}, \omega),-\omega)d\mu
+\end{equation}
+
+donde la función $g$ es no negativa y pertenece a $L_{\infty}(\mathds{S}^2)$. Es de especial interés el caso $g(\omega) = \frac{\mathds{1}_{S(P)}(\omega)}{|P|}$, $\forall \omega\in\mathds{S}^2$, que nos lleva a la radiancia media sobre el píxel $P$. Aplicaremos un estimador de Monte Carlo para aproximar el operador \ref{operadorJ}, aprovechando el hecho de que la serie definida en \ref{Neumann} converge.
+
+Supongamos que generamos una dirección $\omega_0$ inicial siguiendo una función de densidad $p_0$ definida sobre $\mathds{S}^2$ respecto al ángulo sólido. Vamos a introducir la notación que usaremos. En primer lugar, tomamos $x_0:=x_{camara}$. Fijamos $N\in\mathds{N}$. Consideramos $\omega_j\in\mathds{S}^2$ una dirección para todo $j\in\{1,\ldots ,N\}$. Definimos $x_j:=t(x_{j-1}, \omega_{j-1})$, $n_j$ la normal a la superficie en $x_j$, para todo $j\in\{1,\ldots ,N+1\}$. Por último, para $x_i$, $\omega_i$, definimos $R(x_i,\omega_i) = f(x_i,-\omega_{i-1},\omega_i) |n_i\cdot \omega_i|$ para todo $i\in\{1,\ldots ,N\}$. Vemos que utilizando esta notación se tiene que, fijado $i\in\{1,\ldots, N\}$:
+\begin{equation}\label{termino2}
+K^i(L_e)(x_1, -\omega_0) = \int_{(\mathds{S}^2)^i}R(x_1,\omega_1)\ldots R(x_i,\omega_i)L_e(x_{i+1},-\omega_i)d\mu(\omega_1)\ldots d\mu(\omega_i)
+\end{equation}
+
+Y, como ya sabemos, el $N$-ésimo término de la serie de Neumann cumple que:
+\begin{equation}\label{termino}
+ L_N(x_1, -\omega_0) = L_e(x_1,-\omega_0) + \sum_{i=1}^NK^i(L_e)(x_1, -\omega_0)
+\end{equation}
+
+Consideramos $\{p_j\}_{j\in\{1,\ldots ,N\}}$, donde $p_j$ es una función de densidad sobre $\mathds{S}^2$ definida respecto al ángulo sólido para todo $j\in\{1,\ldots,N\}$. Supongamos que la dirección $\omega_j$ es una variable aleatoria generada según la función de densidad $p_j$ para todo $j\in\{0,\ldots,N\}$, y que todas las direcciones $\omega_j$ son independientes. Definamos los siguientes pesos:
+$$W_0=1, W_j=W_{j-1}\frac{R(x_j,\omega_j)}{p_j(\omega_j)}\text{, } \forall j\in\{1,\ldots,N\}$$
+
+Dado que los $\omega_j$ son independientes, su función de densidad conjunta es el producto de las funciones de densidad $p_j$. Por tanto, teniendo en cuenta la igualdad en \ref{termino2}, es fácil ver que, bajo la distribución conjunta de $(\omega_1,\ldots ,\omega_N)$, el estimador $W_jL_e(x_{j+1},-\omega_j)$, $j\in\{0,\ldots,N\}$, cumple que:
+\begin{equation}\label{EspKLe}
+  E[W_jL_e(x_{j+1},-\omega_j)] = K^j(L_e)(x_1, -\omega_0)\text{, } j\in\{0,\ldots,N\}
+\end{equation}
+
+Aplicando el operador \ref{operadorJ} al término $N$-ésimo de la serie de Neumann $L_N$, tenemos que:
+\begin{align*}
+  J_g(L_N)&=\int_{\mathds{S}^2}g(\omega_0)(L_e(x_1,-\omega_0) + \sum_{i=1}^NK^i(L_e)(x_1, -\omega_0))d\mu(\omega_0)\\
+  &=\sum_{i=0}^N\int_{\mathds{S}^2}g(\omega_0)K^i(L_e)(x_1, -\omega_0)d\mu(\omega_0) = \sum_{i=0}^NJ_g(K^i(L_e))
+\end{align*}
+
+Por lo que definimos el siguiente estimador:
+\begin{equation}\label{estPN}
+  P_N[g](\omega_0,\ldots ,\omega_N) = \frac{g(\omega_0)}{p_0(\omega_0)}\sum_{i=0}^NW_iL_e(x_{i+1},-\omega_i)
+  \end{equation}
+
+El cual, bajo la distribución conjunta de $(\omega_0,\ldots ,\omega_N)$, cumple que:
+\begin{align*}
+E[P_N[g]]&=E[\frac{g(\omega_0)}{p_0(\omega_0)}\sum_{j=0}^{N}W_jL^e(x_{j+1},\omega_j)]\\
+&=\sum_{j=0}^{N}E[\frac{g(\omega_0)}{p_0(\omega_0)}W_jL^e(x_{j+1},\omega_j)]=\sum_{j=0}^{N}J_g(K^j(L^e))=J_g(L_N).
+\end{align*}
+
+Y acabamos de demostrar el siguiente teorema:
+
+\begin{teorema}
+  Dado $N\in\mathds{N}_0$, bajo la distribución conjunta de $(\omega_0,\ldots ,\omega_N)$ se cumple que:
+  $$E[P_N[g]] = J_g(L_N)$$
+\end{teorema}
+
+Por tanto, podríamos generar $M$ muestras del vector aleatorio $(\omega_0,\ldots ,\omega_N)$, $\{(\omega_0,\ldots ,\omega_N)^{(i)}\}_{i\in\{1,\ldots,M\}}$, y por la ley fuerte de los números grandes el estimador de Monte Carlo $\frac{1}{M}\sum_{i=1}^MP_N[g]((\omega_0,\ldots ,\omega_N)^{(i)})$ converge al valor $J_g(L_N)$. A su vez, $J_g(L_N)$ tiende a $J_g(L)$ cuando $N$ tiende a infinito debido a que la serie de Neumann converge, por lo que cuanto más grande sea el vector de direcciones que tomamos mejor será la aproximación de $J_g(L)$.
+
+Intuitivamente, este enfoque consiste en trazar un camino de $N$ rayos por la escena. Iniciamos trazando un rayo desde la cámara cuya dirección es elegida de manera aleatoria. Después calculamos el punto donde este rayo interseca la escena, y a partir de ese punto procedemos recursivamente a trazar un rayo con dirección aleatoria. Mientras vamos trazando el camino vamos sumando las componentes $W_jL^e(x_{j+1},\omega_j)$ del estimador. Cuando hayamos trazado los $N$ rayos, almacenamos el valor obtenido y procedemos de nuevo hasta tener $M$ estimaciones con las que calculamos el valor del estimador de Monte Carlo. 
+
+Por último veamos un teorema que nos indica cómo debemos seleccionar las funciones de densidad $p_i$, con $i\in\{0,\ldots, N-1\}$.
+
+\begin{teorema}
+  Elegimos la función de densidad inicial y la función de densidad de transición de la siguiente manera:
+  \begin{equation}
+p_0(\omega_0) = \frac{g(\omega_0)}{\int_{\mathds{S}^2}g(\omega)d\mu(\omega)}\hspace{0.2cm} p_j(\omega_j)=\frac{R(x_j,\omega_j)}{\int_{\mathds{S}^2}R(x_j, \omega)d\mu(\omega)}\text{ }\forall j\in\mathds{N}_0
+  \end{equation}
+
+  Entonces la varianza del estimador (\ref{estPN}) está acotada.
+\end{teorema}
+
+\begin{proof}
+  Por comodidad notaremos:
+  $$\alpha_j = \frac{g(\omega_0)}{p_0(\omega_0)}W_jL^e(x_{j+1},\omega_j)\text{, }\forall j\in \mathds{N}_0$$
+
+  Tengamos en cuenta la siguiente desigualdad (aunque no será comprobada):
+$$(\sum_{j=0}^{\infty}\alpha_j)^2\leq \sum_{j=0}^{\infty}\frac{t^{-j}}{1-t}\alpha_j^2 \text{, } 0<t<1,$$
+
+  Entonces tenemos que:
+$$ \Var(P_N[g])\leq E[P_N[g]^2]=E[(\sum_{j=0}^{N}\alpha_j)^2]\leq E[(\sum_{j=0}^{\infty}\alpha_j)^2]\leq\sum_{j=0}^{\infty}\frac{t^{-j}}{1-t}E[\alpha_j^2]$$
+
+  Teniendo en cuenta como hemos definido las funciones de densidad:
+  \begin{align*}
+    E[\alpha_j^2] &= \int_{(\mathds{S}^2)^j} \frac{g(\omega_0)^2}{p_0(\omega_0)}\frac{R(x_1,\omega_1)^2}{p_1(\omega_1)}\ldots\frac{R(x_j,\omega_j)^2}{p_j(\omega_j)}L_e(x_{j+1},-\omega_j)^2d\mu(\omega_1)\ldots d\mu(\omega_j)\\
+    &=S_j \int_{(\mathds{S}^2)^j} g(\omega_0)R(x_1,\omega_1)\ldots R(x_j,\omega_j)L_e(x_{j+1},-\omega_j)^2d\mu(\omega_1)\ldots d\mu(\omega_j)\\
+    &\leq S_j \|g\|_{\infty} \|L_e\|^2 (l^j)\leq 4\pi \|g\|_{\infty}^2\|L_e\|^2 (l^j)
+  \end{align*}
+
+  Con $l$ la constante de lipschitz de $K$, y $S_j$ cumpliendo que: 
+  $$S_j=\int_{\mathds{S}^2}g(\omega)d\mu(\omega) \prod_{i=1}^j\int_{\mathds{S}^2}R(x_j, \omega)d\mu(\omega)< \int_{\mathds{S}^2}g(\omega)d\mu(\omega) \leq 4\pi \|g\|_{\infty}$$
+
+  Donde se ha usado que $\int_{\mathds{S}^2}R(x_j, \omega)d\mu(\omega)<1$ para todo $j$, lo cuál se cumple por la asunción de conservación de la energía. Por tanto:
+  $$\Var(P_N[g])\leq \sum_{j=0}^{\infty}\frac{t^{-j}}{1-t} 4\pi \|g\|_{\infty}^2 \|L_e\|^2 (l^j)$$
+
+  Y tomando $1>t>l$:
+  $$\Var(P_N[g])\leq \frac{l}{(1-t)(t-l)} 4\pi \|g\|_{\infty}^2 \|L_e\|^2$$
+  \end{proof}
+
+
+Como vemos, para que el estimador tenga varianza acotada, las direcciones deben ser muestreadas según la función BSDF multiplicada por el coseno del ángulo que forma la dirección con la normal a la superficie. Además si tomamos $g(\omega) = \frac{\mathds{1}_{S(P)}(\omega)}{|P|}$, $\forall \omega\in\mathds{S}^2$, el estimador (\ref{estPN}) aproxima la radiancia incidente media en el píxel $P$, y la dirección inicial debe ser generada según la distribución uniforme en el conjunto de direcciones que pasan por el pixel. Es habitual imponer que el último punto del camino sea una fuente de luz, por lo que la función de densidad $p_N$ asignará probabilidades positivas sólo a las direcciones que vayan hacia superficies emisivas. Esto se hace para evitar que se tracen excesivos caminos donde no se interseque ninguna superficie emisiva, ya que estos caminos tendrán una estimación de $0$ y aumentarán la varianza del estimador. Este algoritmo para estimar la ecuación de renderización recibe el nombre de \emph{path-tracing}.

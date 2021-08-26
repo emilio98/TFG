@@ -2,3 +2,991 @@
   {0pt}{2\baselineskip}{\baselineskip}
 
 \chapter{Métodos de Monte Carlo}
+
+Al final del capítulo anterior se mencionaron los problemas a los que pretenden poner solución los métodos de Monte Carlo. En este capítulo se demostrará la convergencia del estimador de Monte Carlo y se describirán diversos métodos de Monte Carlo con aplicación en renderización.
+
+\section{Conceptos básicos}
+
+Vamos a presentar una serie de conceptos que nos serán útiles posteriormente. Empezaremos por describir el concepto de proceso estocástico. Habitualmente se usa la letra $\Omega$ para referirse al espacio muestral en el que trabajamos, pero en nuestro caso usaremos $\Gamma$ para que no haya confusión con el concepto de ángulo sólido.
+
+\begin{notacion}
+Notaremos por $\mathscr{B}^n$ a la $\sigma$-álgebra de Borel en $\mathds{R}^n$.
+\end{notacion}
+
+\begin{definicion}[Proceso estocástico]
+ Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. Un proceso estocástico es una familia de variables o vectores aleatorios $\{X_t\}_{t\in T}$ definidos sobre $(\Gamma, \mathcal{A}, P)$ con valores en un espacio de Borel $(E, \mathscr{B}_E)$, con $E\subseteq \mathds{R}^n$. El conjunto $T$ se denomina espacio paramétrico y es un conjunto ordenado arbitrario, y el espacio $(E, \mathscr{B}_E)$ se denomina espacio de estados. 
+\end{definicion}
+
+\begin{definicion}
+Sea $\{X_t\}_{t\in T}$ un proceso estocástico. Diremos que $\{X_t\}_{t\in T}$ es un proceso estocástico en tiempo discreto si $T$ es un conjunto discreto. Diremos que $\{X_t\}_{t\in T}$ es un proceso estocástico en tiempo continuo si $T$ es un conjunto no numerable. Diremos que $\{X_t\}_{t\in T}$ es un proceso estocástico real si el espacio de estados $(E,\mathscr{B}_E)$ cumple que $E\subseteq \mathds{R}$, es decir, si $\{X_t\}_{t\in T}$ es una sucesión de variables aleatorias.
+\end{definicion}
+
+\iffalse
+\begin{notacion}
+Notaremos por $(\mathds{R}^n)^T$ al conjunto de las funciones de $T$ en $\mathds{R}^n$.
+\end{notacion}
+
+\begin{definicion}[Trayectorias muestrales]
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_t\}_{t\in T}$ un proceso estocástico definido sobre $(\Gamma, \mathcal{A}, P)$. Fijado $\gamma \in \Gamma$, se denomina trayectoria muestral del proceso asociada a $\gamma$ a la función $\{X_t(\gamma)\}_{t\in T} \in (\mathds{R}^n)^T$, con $\{X_t(\gamma)\}_{t\in T}(t) = X_t(\gamma),\text{ }\forall t\in T$ . Definimos por tanto la siguiente función:
+
+\begin{align*}
+\mathcal{X}: &\Gamma \rightarrow (\mathds{R}^n)^T \\
+&\gamma \rightarrow \mathcal{X}(\gamma) = \{X_t(\gamma)\}_{t\in T} 
+\end{align*}
+
+que asigna a cada $\gamma$ su trayectoria muestral.
+\end{definicion}
+
+\begin{definicion}[Clase de rectángulos medibles en $(\mathds{R}^n)^T$]
+Un rectángulo de lados $B_1,\ldots , B_r \in \mathds{R}^n$ es un conjunto de la forma:
+
+$$\{f\in (\mathds{R}^n)^T / f(t_1)\in B_1, \ldots , f(t_r)\in B_r;\text{ } t_i\in T,\text{ } \forall i \in \{1,\ldots ,r\}\}$$
+
+Un rectángulo se denomina medible cuando sus lados son conjuntos medibles. Notaremos por $(\mathscr{F}^n)^T$ a la clase de todos los rectángulos medibles en $(\mathds{R}^n)^T$.
+\end{definicion}
+
+\begin{proposicion}
+$(\mathscr{F}^n)^T$ es una semi-álgebra sobre $(\mathds{R}^n)^T$.
+\end{proposicion}
+
+\begin{notacion}
+Notaremos por $(\mathscr{B}^n)^T$ a la $\sigma$-álgebra generada por la clase de rectángulos medibles $(\mathscr{F}^n)^T$.
+\end{notacion}
+
+\begin{teorema}
+Sea $\{X_t\}_{t\in T}$ un proceso estocástico definido sobre el espacio probabilístico $(\Gamma , \mathcal{A}, P)$. Entonces la función $\mathcal{X}: (\Gamma , \mathcal{A}, P)\rightarrow ((\mathds{R}^n)^T,(\mathscr{B}^n)^T)$ es medible.
+\end{teorema}
+
+\begin{definicion}[Distribución de un proceso estocástico]
+Sea $\{X_t\}_{t\in T}$ un proceso estocástico definido sobre $(\Gamma, \mathcal{A}, P)$. La distribución del proceso es la función $P_{\mathcal{X}}:(\mathscr{B}^n)^T\rightarrow [0,1]$ definida como:
+$$P_{\mathcal{X}}(B) = P(\mathcal{X}^{-1}(B)), \text{ } \forall B\in (\mathscr{B}^n)^T $$
+\end{definicion}
+\fi
+
+Pasamos ahora a definir el concepto de esperanza y probabilidad condicionada.
+
+\begin{definicion}[Probabilidad restringida]
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico y $\mathcal{D}\subseteq \mathcal{A}$ una $\sigma$-álgebra. La restricción de $P$ a la $\sigma$-álgebra $\mathcal{D}$, denotada por $P_{\mathcal{D}}$, se define por
+$$P_{\mathcal{D}}(S) = P(S), \text{ }\forall S\in \mathcal{D}$$
+
+y es una medida de probabilidad sobre $(\Gamma, \mathcal{D})$.
+\end{definicion}
+
+\begin{definicion}[Propiedad casi segura]
+Sea $\Gamma$ un espacio muestral y sea $\mathcal{A}$ una $\sigma$-álgebra sobre $\Gamma$. Sea $P$ una medida de probabilidad sobre $(\Gamma, \mathcal{A})$. Se dice que una propiedad se cumple casi seguramente respecto a $P$, y lo notamos por $c.s.\text{-}P$, si se cumple para todo conjunto $S\in \mathcal{A}$ tal que $P(S)>0$.
+\end{definicion}
+
+\begin{definicion}[P-equivalencias]
+Sea $\Gamma$ un espacio muestral y sea $\mathcal{A}$ una $\sigma$-álgebra sobre $\Gamma$. Sea $P$ una medida de probabilidad sobre $(\Gamma, \mathcal{A})$. Se dice que dos funciones medibles $X:(\Gamma, \mathcal{A}, P) \rightarrow (\mathds{R}^n, \mathscr{B}^n)$, $Y:(\Gamma, \mathcal{A}, P) \rightarrow (\mathds{R}^n, \mathscr{B}^n)$ son $P$-equivalentes si $X = Y\text{ } c.s.\text{-}P$.
+\end{definicion}
+
+\begin{definicion}[Esperanza de una variable aleatoria condicionada a una $\sigma$-álgebra]\label{EspCond}
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. La esperanza condicionada de una variable aleatoria integrable $X:(\Gamma, \mathcal{A}, P)\rightarrow (\mathds{R}, \mathscr{B})$ a una $\sigma$-álgebra $\mathcal{D}\subseteq \mathcal{A}$ se nota por $E[X/\mathcal{D}]$ y es la única función $\mathcal{D}$-medible, salvo $P_{\mathcal{D}}$-equivalencias, que verifica:
+
+\begin{equation}\label{ecEspCond}
+\int _S E[X/\mathcal{D}]\text{ }dP_{\mathcal{D}} = \int_S X\text{ }dP,\text{ }\forall S\in\mathcal{D}
+\end{equation}
+
+\end{definicion}
+
+\begin{definicion}[Probabilidad condicionada a una $\sigma$-álgebra]
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. La probabilidad condicionada de un suceso $S\in \mathcal{A}$ a una $\sigma$-álgebra $\mathcal{D}\subseteq \mathcal{A}$ se nota por $P(S/\mathcal{D})$ y se define como:
+$$P(S/\mathcal{D}) = E[\mathds{1}_S/\mathcal{D}], \text{ } c.s.\text{-}P_{\mathcal{D}}$$
+
+donde $\mathds{1}_S$ es la función indicadora del conjunto $S$.
+\end{definicion}
+
+\begin{definicion}[$\sigma$-álgebra generada por un vector aleatorio]
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico y sea $X:(\Gamma, \mathcal{A}, P) \rightarrow (\mathds{R}^n, \mathscr{B}^n)$ un vector aleatorio. La $\sigma$-álgebra generada por $X=(X_1,\ldots ,X_n)$ se nota por $\sigma(X) = \sigma(X_1,\ldots ,X_n)$ y se define por $\sigma(X) = \{X^{-1}(B)/ B\in \mathscr{B}^n\}$. $\sigma(X)$ es la mínima $\sigma$-álgebra que hace a $X$ medible.
+\end{definicion}
+
+\begin{definicion}[Esperanza de una variable aleatoria condicionada a un vector aleatorio]
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. Sea $X$ una variable aleatoria integrable, y sea $Y=(Y_1,\ldots ,Y_n)$ un vector aleatorio, ambos definidos sobre $(\Gamma, \mathcal{A}, P)$. La esperanza condicionada de $X$ al vector aleatorio $Y$ se nota por $E[X/Y1,\ldots ,Y_n]$ y se define por:
+$$E[X/Y_1,\ldots ,Y_n]=E[X/\sigma(Y_1,\ldots ,Y_n)], \text{ }c.s.\text{-}P_{\sigma(Y_1,\ldots ,Y_n)}$$
+\end{definicion}
+
+\begin{proposicion}
+$E[X/Y_1,\ldots ,Y_n]$ es una función de $Y_1,\ldots ,Y_n$.
+\end{proposicion}
+
+\begin{definicion}[Probabilidad condicionada a un vector aleatorio]
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico y sea $Y=(Y_1,\ldots ,Y_n)$ un vector aleatorio definido sobre $(\Gamma, \mathcal{A}, P)$. La probabilidad condicionada de un suceso $S\in \mathcal{A}$ al vector aleatorio $Y$ se nota por $P(S/Y_1,\ldots ,Y_n)$ y se define por:
+$$P(S/Y_1,\ldots ,Y_n) = E[\mathds{1}_S/Y_1,\ldots ,Y_n], \text{ } c.s.\text{-}P_{\sigma(Y_1,\ldots ,Y_n)}$$
+
+donde $\mathds{1}_S$ es la función indicadora del conjunto $S$.
+\end{definicion}
+
+Pasamos a ver una serie de propiedades de la esperanza condicionada que utilizaremos en demostraciones posteriores. Antes de enunciar dichas propiedades necesitamos definir el concepto de independencia de $\sigma$-álgebras.
+
+\begin{definicion}[Independencia de $\sigma$-álgebras]
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. Sean $S_1, S_2 \subseteq \mathcal{A}$ dos $\sigma$-álgebras y sea $Y=(Y_1,\ldots ,Y_n)$ un vector aleatorio definido sobre $(\Gamma, \mathcal{A}, P)$. Diremos que $S_1$ y $S_2$ son independientes si cumplen que:
+$$\forall s_1\in S_1 \text{, }\forall s_2\in S_2\text{, } P(s_1\cap s_2) = P(s_1)P(s_2)$$
+
+De igual forma diremos que $Y$ es independiente de $S_1$ si $\sigma(Y_1,\ldots ,Y_n)$ es independiente de $S_1$.
+\end{definicion}
+
+\begin{proposicion}
+Sean $X,Y$ variables aleatorias integrables definidas sobre el espacio probabilístico $(\Gamma, \mathcal{A}, P)$, sea $\mathcal{D}\subseteq \mathcal{A}$ una $\sigma$-álgebra. Entonces:
+
+\begin{enumerate}[label=(\alph*)]
+\item \label{PropE2} Sean $a,b\in\mathds{R}$, entonces $E[aX+bY/\mathcal{D}] = aE[X/\mathcal{D}] + bE[Y/\mathcal{D}]$, $c.s.\text{-}P_{\mathcal{D}}$.
+
+\item \label{PropE3} Si $X\geq 0\text{ } c.s.\text{-}P\Rightarrow E[X/\mathcal{D}]\geq 0$, $c.s.\text{-}P_{\mathcal{D}}$.
+
+\item \label{PropE4} Si $X\geq Y c.s.\text{-}P\Rightarrow E[X/\mathcal{D}]\geq E[Y/\mathcal{D}]$, $c.s.\text{-}P_{\mathcal{D}}$.
+
+\item \label{PropE6} $E[E[X/\mathcal{D}]] = E[X]$.
+
+\item \label{PropS1} Si $X$ es $\mathcal{D}$-medible $\Rightarrow$ $E[X/\mathcal{D}] = X$, $c.s.\text{-}P_{\mathcal{D}}$.
+
+\item \label{Prop9} Sea $\{Z_n\}_{n\in\mathds{N}}$ una sucesión creciente de variables aleatorias positivas integrables sobre $(\Gamma, \mathcal{A}, P)$, que convergen puntualmente a una variable aleatoria integrable $Z$, entonces:
+$$\lim_{n\to +\infty}E[Z_n/\mathcal{D}] = E[Z/\mathcal{D}]\text{, }c.s.\text{-}P_{\mathcal{D}} $$
+
+\item \label{PropS2} Si $XY$ es integrable y $X$ es $\mathcal{D}$-medible, $\Rightarrow E[XY/\mathcal{D}] = XE[Y/\mathcal{D}]$, $c.s.\text{-}P_{\mathcal{D}}$.
+
+\item \label{PropS3} Si $X$ es independiente de $\mathcal{D}$ $\Rightarrow$ $E[X/\mathcal{D}] = E[X]$, $c.s.\text{-}P_{\mathcal{D}}$.
+
+\item \label{PropS4} Sean $\mathcal{D}_1\subseteq \mathcal{D}_2\subseteq \mathcal{A}$, entonces:
+$$E[E[X/\mathcal{D}_2]/\mathcal{D}_1]=E[E[X/\mathcal{D}_1]/\mathcal{D}_2]=E[X/\mathcal{D}_1]\text{, } c.s.\text{-}P_{\mathcal{D}_1}$$
+
+\item \label{PropS5} Sea $g:\mathds{R}\rightarrow \mathds{R}$ una función continua y convexa, tal que $E[g(X)]<\infty$, entonces:
+$$g(E[X/\mathcal{D}])\leq E[g(X)/\mathcal{D}]\text{, } c.s.\text{-}P_{\mathcal{D}}$$
+
+\item \label{PropE5} $|E[X/\mathcal{D}]|\leq E[|X|/\mathcal{D}]\text{, } c.s.\text{-}P_{\mathcal{D}}$
+\end{enumerate}
+
+\end{proposicion}
+
+\begin{proof}
+Las propiedades \ref{PropE2}, \ref{PropE3}, \ref{PropE6}, \ref{PropS1}, \ref{PropS3} e \ref{PropS4} se demuestran fácilmente usando la definición de esperanza condicionada (definición \ref{EspCond}). Por otro lado, la propiedad \ref{PropE4} se deduce fácilmente de las propiedades \ref{PropE2} y \ref{PropE3}, así como la propiedad \ref{PropE5} se deduce de la propiedad \ref{PropE4}. Nos centraremos por tanto en las propiedades \ref{Prop9}, \ref{PropS2} y \ref{PropS5}.\\
+
+\textbf{Demostración de la propiedad \ref{Prop9}:}
+
+Tomamos $Y_n=Z-Z_n$. Dado que $Y_n\geq 0$ $c.s.\text{-}P$, por la propiedad \ref{PropE3}, $E[Y_n/\mathcal{D}]\geq 0$ $c.s.\text{-}P_{\mathcal{D}}$ para todo $n\in\mathds{N}$. Además, por ser $\{Y_n\}_{n\in\mathds{N}}$ decreciente, por la propiedad \ref{PropE4}, se cumple que $\{E[Y_n/\mathcal{D}]\}_{n\in\mathds{N}}$ también es decreciente. Al ser decreciente y positiva, la sucesión $\{E[Y_n/\mathcal{D}]\}_{n\in\mathds{N}}$ converge puntualmente. Sea $\alpha$ el límite puntual de $\{E[Y_n/\mathcal{D}]\}_{n\in\mathds{N}}$, es decir, $\alpha(\gamma):=\lim_{n\to +\infty}E[Y_n/\mathcal{D}](\gamma)$, $\forall \gamma\in\Gamma$. Queremos demostrar por tanto que $\alpha = 0$ $c.s.\text{-}P_{\mathcal{D}}$.
+
+Es fácil ver que por el teorema de la convergencia monótona se tiene que $\lim_{n\to +\infty}E[Z_n] = E[Z]$. Deducimos que, usando la propiedad \ref{PropE6}:
+$$\lim_{n\to +\infty}E[E[Y_n/\mathcal{D}]] = \lim_{n\to +\infty}E[Y_n] = E[Z] - \lim_{n\to +\infty}E[Z_n] = 0$$
+
+Y por tanto, usando el teorema de la convergencia dominada, se tiene que $E[\alpha] = \lim_{n\to +\infty}E[E[Y_n/\mathcal{D}]] = 0$. Dado que $\alpha \geq 0$ $c.s.\text{-}P_{\mathcal{D}}$ por ser límite de funciones positivas, y teniendo que $E[\alpha] = 0$, deducimos que $\alpha = 0$ $c.s.\text{-}P_{\mathcal{D}}$. Por último:
+$$0 = \alpha = \lim_{n\to +\infty}E[Y_n/\mathcal{D}] = E[Z/\mathcal{D}] - \lim_{n\to +\infty} E[Z_n/\mathcal{D}] \text{ } c.s.\text{-}P_{\mathcal{D}} $$
+$$\Updownarrow$$
+$$ \lim_{n\to +\infty} E[Z_n/\mathcal{D}] =  E[Z/\mathcal{D}] \text{ } c.s.\text{-}P_{\mathcal{D}}$$
+
+Como queríamos.\\
+
+
+\textbf{Demostración de la propiedad \ref{PropS2}:}
+
+En primer lugar lo demostraremos para funciones indicadoras. Sea $A\in \mathcal{D}$, y sea $\mathds{1}_A$ la función indicadora de $A$. Por definición, la esperanza condicionada es la única función $\mathcal{D}$-medible salvo $P_{\mathcal{D}}$ equivalencias que verifica \ref{ecEspCond}. Por tanto:
+$$\int _S E[Y\mathds{1}_A/\mathcal{D}]\text{ }dP_{\mathcal{D}} = \int_S Y\mathds{1}_A\text{ }dP,\text{ }\forall S\in\mathcal{D}$$
+
+Sea $S\in \mathcal{D}$, es claro que $S\cap A\in \mathcal{D}$, y vemos que:
+$$\int_S Y\mathds{1}_A\text{ }dP  = \int_{S\cap A} Y\text{ }dP = \int_{S\cap A} E[Y/\mathcal{D}]\text{ }dP_{\mathcal{D}} = \int_{S} \mathds{1}_A E[Y/\mathcal{D}]\text{ }dP_{\mathcal{D}},\text{ }\forall S\in\mathcal{D}$$
+
+Dado que ${1}_A E[Y/\mathcal{D}]$ es $\mathcal{D}$-medible por ser producto de funciones $\mathcal{D}$-medibles, por la unicidad de la definición de esperanza condicionada deducimos que $E[Y\mathds{1}_A/\mathcal{D}] = \mathds{1}_A E[Y/\mathcal{D}]$, $c.s.\text{-}P_{\mathcal{D}}$, $\forall A\in\mathcal{D}$.
+
+Vamos ahora a demostrarlo para funciones simples, es decir, para funciones de la forma $X=\sum_{i=0}^m a_i\mathds{1}_{B_i}$, con $B_i\in \mathcal{D}$ para todo $i$. Vemos que, usando la linealidad (propiedad \ref{PropE2}) y el resultado para funciones indicadoras:
+$$E[XY/\mathcal{D}] = \sum_{i=0}^m a_i E[\mathds{1}_{B_i}Y/\mathcal{D}] = \sum_{i=0}^m a_i \mathds{1}_{B_i} E[Y/\mathcal{D}] = X E[Y/\mathcal{D}]\text{, }c.s.\text{-}P_{\mathcal{D}}$$
+
+El siguiente paso es demostrar el resultado para funciones medibles positivas. Sea $X$ una función medible positiva integrable definida sobre $(\Gamma, \mathcal{A}, P)$. Por el teorema de aproximación de Lebesgue sabemos que existe una sucesión creciente $\{X_n\}_{n\in\mathds{N}}$ de funciones simples positivas que converge puntualmente hacia $X$. Vemos que:
+$$XE[Y/\mathcal{D}] = \lim_{n\to +\infty} X_n E[Y/\mathcal{D}] \overset{(1)}{=} \lim_{n\to +\infty} E[X_n Y/\mathcal{D}] \overset{(2)}{=} E[XY/\mathcal{D}] \text{, } c.s.\text{-}P_{\mathcal{D}}$$
+
+donde en $(1)$ se ha usado el resultado recién demostrado para funciones simples y en $(2)$ se ha usado la propiedad \ref{Prop9}. Por último falta demostrar el resultado para variables aleatorias integrables. Sea $X$ una variable aleatoria integrable. $X$ se puede descomponer como suma de su parte positiva y su parte negativa, notadas por $X^+=\max\{X, 0\}$, $X^-=-\min\{X, 0\}$, con $X = X^+ - X^-$. Por tanto se tiene que:
+\begin{align*}
+XE[Y/\mathcal{D}] &= X^+ E[Y/\mathcal{D}] - X^- E[Y/\mathcal{D}] \overset{(1)}{=} E[X^+ Y/\mathcal{D}] - E[X^- Y/\mathcal{D}]\\
+&\overset{(2)}{=} E[(X^+-X^-)Y/\mathcal{D}] = E[XY/\mathcal{D}] \text{, } c.s.\text{-}P_{\mathcal{D}}
+\end{align*}
+
+donde en $(1)$ se ha usado el resultado para funciones positivas y en $(2)$ se ha usado la linealidad de la esperanza condicionada.\\
+
+\textbf{Demostración de la propiedad \ref{PropS5}:}
+
+Si $g:\mathds{R}\rightarrow \mathds{R}$ es una función continua y convexa, existe una función $h:\mathds{R}\rightarrow \mathds{R}$ no decreciente tal que $g(x)-g(y)\geq k(y)(x-y)$, $\forall x,y \in \mathds{R}$. Aplicando dicha desigualdad a $X$ y $E[X/\mathcal{D}]$:
+$$ g(X)-g(E[X/\mathcal{D}])\geq k(E[X/\mathcal{D}])(X-E[X/\mathcal{D}])\text{, } c.s.\text{-}P_{\mathcal{D}}$$
+
+Usando la propiedad \ref{PropE4} y la linealidad (propiedad \ref{PropE2}) tenemos que:
+$$E[g(X)/\mathcal{D}]-E[g(E[X/\mathcal{D}])/\mathcal{D}]\geq E[k(E[X/\mathcal{D}])(X-E[X/\mathcal{D}])/\mathcal{D}]\text{, } c.s.\text{-}P_{\mathcal{D}}$$
+
+$g(E[X/\mathcal{D}])$ y $k(E[X/\mathcal{D}])$ son $\mathcal{D}$-medibles por ser $g$ continua y $k$ no decreciente, por lo que podemos aplicar las propiedades \ref{PropS1} y \ref{PropS2} para obtener:
+$$ E[g(X)/\mathcal{D}]-g(E[X/\mathcal{D}])\geq k(E[X/\mathcal{D}]) E[(X-E[X/\mathcal{D}])/\mathcal{D}]\text{, } c.s.\text{-}P_{\mathcal{D}} $$
+
+Basta ver que:
+$$E[(X-E[X/\mathcal{D}])/\mathcal{D}] = E[X/\mathcal{D}] - E[E[X/\mathcal{D}]/\mathcal{D}] = 0\text{ } c.s.\text{-}P_{\mathcal{D}}$$
+
+donde se ha usado la linealidad y la propiedad \ref{PropS1}.
+
+\end{proof}
+
+Las anteriores definiciones de esperanza de una variable aleatoria se pueden extender a vectores aleatorios. En lo siguiente, diremos que un vector aleatorio es integrable si lo son sus componentes.
+
+\begin{definicion}[Esperanza de un vector aleatorio condicionado a una $\sigma$-álgebra]
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico y sea $X = (X_1,\ldots ,X_n)$ un vector aleatorio integrable definido sobre $(\Gamma, \mathcal{A}, P)$. La esperanza condicionada de $X$ a una $\sigma$-álgebra $\mathcal{D}\subseteq \mathcal{A}$ se nota por $E[X/\mathcal{D}]$ y se define por:
+$$E[X/\mathcal{D}] = (E[X_1/\mathcal{D}],\ldots ,E[X_n/\mathcal{D}]),\text{ }c.s\text{-}P_{\mathcal{D}} $$
+\end{definicion}
+
+\begin{definicion}[Esperanza de un vector aleatorio condicionado a un vector aleatorio]
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico y sean $X = (X_1,\ldots ,X_n)$, $Y=(Y_1,\ldots ,Y_n)$ dos vectores aleatorios definidos sobre $(\Gamma, \mathcal{A}, P)$. Supongamos además que $X$ es integrable. La esperanza condicionada de $X$ al vector aleatorio $Y$ se nota por $E[X/Y1,\ldots ,Y_n]$ y se define por
+$$E[X/Y_1,\ldots ,Y_n]=E[X/\sigma(Y_1,\ldots ,Y_n)], \text{ }c.s.\text{-}P_{\sigma(Y_1,\ldots ,Y_n)}$$ 
+\end{definicion}
+
+Por último veremos dos tipos de procesos estocásticos de gran importancia.
+
+\begin{definicion}[Filtración de $\sigma$-álgebras]
+Sea $(\Gamma , \mathcal{A})$ un espacio medible. Una filtración de $\sigma$-álgebras $\{\mathscr{G}_t\}_{t\in T}$ es una sucesión de $\sigma$-álgebras cumpliendo que:
+$$\forall s,t\in T\text{, } s\leq t \text{, } \mathscr{G}_s\subseteq\mathscr{G}_{t}\subseteq\mathcal{A}$$
+\end{definicion}
+
+\begin{definicion}[Adaptabilidad a una filtración]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_t\}_{t\in T}$ un proceso estocástico definido sobre $(\Gamma , \mathcal{A}, P)$ y sea $\{\mathscr{G}_t\}_{t\in T}$ una filtración de $\sigma$-álgebras. Se dice que $\{X_t\}_{t\in T}$ está adaptado a la filtración $\{\mathscr{G}_t\}_{t\in T}$ si $X_t$ es $\mathscr{G}_t$-medible, $\forall t\in T$.
+\end{definicion}
+
+\begin{notacion}
+$\mathds{N}_0 = \mathds{N}\cup \{0\}$
+\end{notacion}
+
+\begin{definicion}[Martingala, submartingala y supermartingala]\label{martingala}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso estocástico real (en tiempo discreto) definido sobre $(\Gamma, \mathcal{A}, P)$, con $X_n$ integrable para todo $n\in\mathds{N}_0$. Sea $\{\mathscr{G}_n\}_{n\in\mathds{N}_0}$ una filtración de $\sigma$-álgebras tal que $\{X_n\}_{n\in \mathds{N}_0}$ está adaptada a $\{\mathscr{G}_n\}_{n\in\mathds{N}_0}$. Entonces diremos que $\{X_n, \mathscr{G}_n\}_{n\in\mathds{N}_0}$ es una martingala si cumple que:
+$$ E[X_{n+1}/\mathscr{G}_n] = X_n\text{, }c.s.\text{-}P_{\mathscr{G}_n}\text{, }\forall n\in\mathds{N}_0$$
+
+Diremos que $\{X_n, \mathscr{G}_n\}_{n\in\mathds{N}_0}$ es una submartingala si cumple que:
+\begin{equation}\label{submartingala}
+ E[X_{n+1}/\mathscr{G}_n] \geq X_n\text{, }c.s.\text{-}P_{\mathscr{G}_n}\text{, }\forall n\in\mathds{N}_0
+\end{equation}
+
+Por último, diremos que $\{X_n, \mathscr{G}_n\}_{n\in\mathds{N}_0}$ es una supermartingala si cumple que:
+$$ E[X_{n+1}/\mathscr{G}_n] \leq X_n\text{, }c.s.\text{-}P_{\mathscr{G}_n}\text{, }\forall n\in\mathds{N}_0$$
+\end{definicion}
+
+\begin{definicion}[Proceso de Markov]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_t\}_{t\in T}$ un proceso estocástico definido sobre $(\Gamma, \mathcal{A}, P)$ con espacio de estados $(E,\mathscr{B}_E)$. Sea $\{\mathscr{G}_t\}_{t\in T}$ una filtración de $\sigma$-álgebras tal que $\{X_t\}_{t\in T}$ está adaptada a $\{\mathscr{G}_t\}_{t\in T}$. Entonces diremos que $\{X_t, \mathscr{G}_t\}_{t\in T}$ es un proceso de Markov si cumple que:
+$$\forall s,t\in T\text{, } s<t\text{, }\forall B\in \mathscr{B}_E\text{, } P(X_t\in B/\mathscr{G}_s) = P(X_t\in B/X_{s}) $$
+\end{definicion}
+
+En el caso de procesos de Markov en tiempo discreto se da la siguiente caracterización.
+
+\begin{proposicion}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso estocástico en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con espacio de estados $(E,\mathscr{B}_E)$. Sea $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$ una filtración de $\sigma$-álgebras tal que $\{X_n\}_{n\in \mathds{N}_0}$ está adaptada a $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$. Entonces $\{X_n, \mathscr{G}_n\}_{n\in \mathds{N}_0}$ es un proceso de Markov si y solo si cumple que:
+$$\forall n \in \mathds{N}\text{, }\forall B\in \mathscr{B}_E\text{, } P(X_n\in B/\mathscr{G}_{n-1}) = P(X_n\in B/X_{n-1}) $$
+\end{proposicion}
+
+\section{Convergencia del estimador de Monte Carlo}
+
+Cuando presentamos el estimador de Monte Carlo, vimos que su esperanza es igual al valor que queremos aproximar, lo cual implica que si la varianza del estimador no es muy grande por lo general obtendremos valores cercanos al buscado. En esta sección enunciaremos y demostraremos el teorema que nos asegura la convergencia del estimador de Monte Carlo al valor buscado cuando el número de muestras tomadas tiende a infinito. Antes de poder abarcar dicha demostración necesitamos probar una serie de resultados previos.
+
+
+\subsection{Tiempos de parada}
+En ocasiones querremos considerar martingalas o submartingalas en tiempos aleatorios, para lo cual se define un tipo de variables aleatorias con unas características muy útiles, llamadas \emph{tiempos de parada}.
+
+\begin{definicion}[Tiempo de parada de una filtración]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$ una filtración de $\sigma$-álgebras, y sea $R$ una variable aleatoria definida sobre $(\Gamma , \mathcal{A}, P)$ y tomando valores en $\mathds{N}_0\cup \{+\infty \}$. Diremos que $R$ es un tiempo de parada para la filtración $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$ si se cumple que $R^{-1}(n)=\{R = n\} \in \mathscr{G}_n\text{, }\forall n\in \mathds{N}_0$. Es fácil ver que, por ser $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$ una filtración, las dos siguientes condiciones son equivalentes:
+\begin{equation}\label{ecTParada}
+\{R = n\} \in \mathscr{G}_n\text{, }\forall n\in \mathds{N}_0 \Leftrightarrow \{R \leq n\} \in \mathscr{G}_n\text{, }\forall n\in \mathds{N}_0 
+\end{equation}
+%Notamos por $\mathscr{G}_{\infty} = \sigma (\bigcup_{n\in\mathds{N}_0}\mathscr{G}_n)$ a la mínima $\sigma$-álgebra que contiene a $\bigcup_{n\in\mathds{N}_0}\mathscr{G}_n$. Si $R$ es un tiempo de parada, definimos la $\sigma$-álgebra $\mathscr{G}_R$ como:
+%$$\mathscr{G}_R = \{A\in \mathscr{G}_{\infty} : A\cap R^{-1}(n) \in \mathscr{G}_n \text{, } \forall n\in\mathds{N}_0\}$$
+\end{definicion}
+
+\begin{definicion}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n, \mathscr{G}_n\}_{n\in \mathds{N}_0}$ una martingala (submartingala, supermartingala) sobre $(\Gamma , \mathcal{A}, P)$. Sea $R$ un tiempos de parada para la filtración $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$. Entonces definimos la variable aleatoria $X_R:(\Gamma , \mathcal{A}, P)\rightarrow (E,\mathscr{B}_E)$ como:
+$$X_R(\gamma) = X_{R(\gamma)}(\gamma)\text{, }\forall \gamma\in\Gamma$$
+\end{definicion}
+
+Una vez presentado este concepto, podemos demostrar el siguiente teorema.
+
+\begin{teorema}\label{opcional}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n, \mathscr{G}_n\}_{n\in \mathds{N}_0}$ una submartingala sobre $(\Gamma , \mathcal{A}, P)$. Sean $R, L$ dos tiempos de parada para la filtración $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$ satisfaciendo que $R\leq L \leq K\text{, }c.s.\text{-}P$ para algún $K\in \mathds{N}_0$. Entonces se cumple que:
+$$E[X_{R}]\leq E[X_{L}]$$
+\end{teorema}
+
+\begin{proof}
+En primer lugar es fácil ver que:
+$$X_R = \sum_{j=0}^{K}X_j\mathds{1}_{\{L\geq j\}}\mathds{1}_{\{R=j\}} \text{, }c.s.\text{-}P$$
+
+donde $\mathds{1}_{A}$ representa la función indicadora del suceso $A$. Vemos también que, dado $j\in \{0,\ldots ,K\}$, se cumple la siguiente igualdad:
+$$ X_j\mathds{1}_{\{L\geq j\}} = X_j\mathds{1}_{\{L\geq j\}} - X_j\mathds{1}_{\{L\geq K+1\}} = \sum_{i=j}^{K} (X_i \mathds{1}_{\{L\geq i\}} - X_{i+1}\mathds{1}_{\{L\geq i+1\}}) \text{, }c.s.\text{-}P$$
+
+donde se ha usado que $\mathds{1}_{\{L\geq K+1\}} = 0  \text{, }c.s.\text{-}P$. Por tanto:
+\begin{align*}
+X_R &= \sum_{j=0}^{K} \sum_{i=j}^{K} (X_i \mathds{1}_{\{L\geq i\}} - X_{i+1}\mathds{1}_{\{L\geq i+1\}}) \mathds{1}_{\{R=j\}}\\
+&= \sum_{j=0}^{K} \sum_{i=j}^{K} X_i \mathds{1}_{\{L=i\}}\mathds{1}_{\{R=j\}} + \sum_{j=0}^{K} \sum_{i=j}^{K} (X_i - X_{i+1}) \mathds{1}_{\{L\geq i+1\}} \mathds{1}_{\{R=j\}}  \text{, }c.s.\text{-}P
+\end{align*}
+
+donde se ha usado que $\mathds{1}_{\{L\geq i\}} = \mathds{1}_{\{L = i\}} + \mathds{1}_{\{L\geq i+1\}}  \text{, }\forall i\in \{0,\ldots ,K\}$. También vemos que:
+$$\sum_{j=0}^{K} \sum_{i=j}^{K} X_i \mathds{1}_{\{L=i\}}\mathds{1}_{\{R=j\}} = X_L \sum_{j=0}^{K} \sum_{i=j}^{K} \mathds{1}_{\{L=i\}}\mathds{1}_{\{R=j\}} = X_L  \text{, }c.s.\text{-}P$$
+
+Y por tanto:
+\begin{gather}\tag{$*_1$}\label{aux}
+X_R-X_L = \sum_{j=0}^{K} \sum_{i=j}^{K} (X_i - X_{i+1}) \mathds{1}_{\{L\geq i+1\}} \mathds{1}_{\{R=j\}}  \text{, }c.s.\text{-}P
+\end{gather}
+
+Fijamos $j,i\in\mathds{N}_0$, con $0\leq j\leq i \leq K$. Entonces se tiene que el suceso $\{R=j\}\in \mathscr{G}_j\subseteq \mathscr{G}_i$ por ser $R$ un tiempo de parada. De igual forma, en virtud de la equivalencia \ref{ecTParada}, se tiene que el suceso $\{L\geq i+1\} = \{L\leq i\}^c \in \mathscr{G}_i$. Por tanto $\mathds{1}_{\{L\geq i+1\}}$, $\mathds{1}_{\{R=j\}}$ son $\mathscr{G}_i$-medibles. Vemos por tanto que:
+\begin{align*}
+E[(X_i - X_{i+1}) \mathds{1}_{\{L\geq i+1\}} \mathds{1}_{\{R=j\}}] &\overset{(1)}{=} E[E[(X_i - X_{i+1}) \mathds{1}_{\{L\geq i+1\}} \mathds{1}_{\{R=j\}}/\mathscr{G}_i]] \\
+&\overset{(2)}{=} E[E[(X_i - X_{i+1})/\mathscr{G}_i]\mathds{1}_{\{L\geq i+1\}} \mathds{1}_{\{R=j\}}]\\
+&\overset{(3)}{=} E[(X_i-E[X_{i+1}/\mathscr{G}_i])\mathds{1}_{\{L\geq i+1\}} \mathds{1}_{\{R=j\}}] \overset{(4)}{\leq} 0 
+\end{align*}
+
+donde en $(1)$ se ha usado la propiedad \hyperref[PropE6]{2.3.(d)}, en $(2)$ se ha usado la propiedad \hyperref[PropS2]{2.3.(g)}, en $(3)$ se ha usado la linealidad de la esperanza condicionada (propiedad \hyperref[PropE2]{2.3.(a)}) y la propiedad \hyperref[PropS1]{2.3.(e)} y por último en $(4)$ se ha usado la definición de submartingala (\ref{submartingala}) y que la esperanza de una variable aleatoria no positiva es no positiva.
+
+Por tanto podemos tomar esperanzas a ambos lados de la igualdad \hyperref[aux]{($*_1$)} obteniendo:
+$$E[X_R]-E[X_L] = \sum_{j=0}^{K} \sum_{i=j}^{K} E[(X_i - X_{i+1}) \mathds{1}_{\{L\geq i+1\}} \mathds{1}_{\{R=j\}}] \leq 0 $$
+
+Y por tanto $E[X_R]\leq E[X_L]$, como queríamos.
+
+\end{proof}
+
+\subsection{Número de upcrossings y martingalas inversas}
+Pasamos a definir el concepto de número de \emph{upcrossings} de una sucesión de números reales. Intuitivamente, fijado un intervalo $[a,b]$, el número de upcrossings de una sucesión es el número de veces que, partiendo de un valor menor que $a$, acaba en un valor mayor que $b$, es decir, el número de veces que 'atraviesa' el intervalo 'de abajo hacia arriba'.
+
+\begin{definicion}[Número de upcrossings]
+Sean $a,b\in\mathds{R}, a<b$, y sea $\{X_n\}_{n\in\mathds{N}_0}$ una sucesión de números reales. Definimos dos sucesiones $\{\tau _j\}_{j\in \mathds{N}_0}$, $\{\xi _j\}_{j\in \mathds{N}_0}$, con $\xi _0 = \tau _0 =0$. Definimos las familias de forma recursiva:
+$$ \tau_{j+1} = inf\{k\geq \xi_j : X_k\leq a\}, \hspace{0.6cm} \xi_{j+1} = inf\{k\geq \tau_{j+1} : X_k\geq b\}$$
+
+Bajo la convención de que $inf(\emptyset)=+\infty$, tenemos que las sucesiones tomarán valores en $\mathds{N}_0\cup \{+\infty\}$. Para $m\geq 1$, el número de upcrossings de $[a,b]$ entre los tiempos $0$ y $m$ por la suceción $\{X_n\}_{n\in\mathds{N}_0}$ se define como:
+$$ U_m[a,b](\{X_n\}_{n\in\mathds{N}_0}) := max\{j\geq 0 : \xi_j \leq m\} $$
+
+Notaremos el número de upcrossings como $U_m$ para simplificar la notación cuando no lleve a confusión.
+\end{definicion}
+
+Podemos extender el concepto de número de upcrossings a procesos estocásticos como veremos a continuación.
+
+\begin{definicion}[Número de upcrossings de un proceso estocástico]\label{defUpcross}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso estocástico real en tiempo discreto sobre $(\Gamma , \mathcal{A}, P)$. Sean $a,b\in\mathds{R}, a<b$, $m\in\mathds{N}_0$. Definimos los procesos estocásticos $\{\tau _j\}_{j\in \mathds{N}_0}$, $\{\xi _j\}_{j\in \mathds{N}_0}$ de la siguiente manera:
+$$\xi _0 = \tau _0 =0 \text{, }c.s.\text{-}P$$
+$$ \tau_{j+1}(\gamma) = inf\{k\geq \xi_j(\gamma) : X_k(\gamma)\leq a\} \text{, }\forall \gamma \in \Gamma$$
+$$\xi_{j+1}(\gamma) = inf\{k\geq \tau_{j+1}(\gamma) : X_k(\gamma)\geq b\} \text{, }\forall \gamma \in \Gamma$$
+
+Entonces el número de upcrossings de $[a,b]$ entre los tiempos $0$ y $m$ por el proceso $\{X_n\}_{n\in \mathds{N}_0}$, que notaremos por $U_m[a,b](\{X_n\}_{n\in\mathds{N}_0})$ (o por $U_m$ para simplificar la notación), se define como:
+$$U_m(\gamma) := max\{j\geq 0 : \xi_j(\gamma) \leq m\}\text{, }\forall \gamma \in \Gamma$$
+
+\end{definicion}
+
+Con el objetivo de demostrar una desigualdad relacionada con el número de upcrossings de una submartingala, enunciaremos y demostraremos dos proposiciones previas que necesitaremos.
+
+\begin{proposicion}\label{upcrossTParada}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso estocástico real (en tiempo discreto) definido sobre $(\Gamma, \mathcal{A}, P)$. Sea $\{\mathscr{G}_n\}_{n\in\mathds{N}_0}$ una filtración de $\sigma$-álgebras tal que $\{X_n\}_{n\in \mathds{N}_0}$ está adaptado a $\{\mathscr{G}_n\}_{n\in\mathds{N}_0}$. Sean $a,b\in\mathds{R}, a<b$, $m\in\mathds{N}_0$. Entonces, en el contexto de la definición \ref{defUpcross}, $\tau _j$, $\xi _j$ son tiempos de parada respecto a $\{\mathscr{G}_n\}_{n\in\mathds{N}_0}$, $\forall j\in \mathds{N}_0$.
+\end{proposicion}
+
+\begin{proof}
+Empezaremos viendo que $\tau _j$ es un tiempo de parada $\forall j\in \mathds{N}_0$. La demostración para $\xi _j$ se puede abarcar de manera similar y no la incluiremos aquí. Claramente $\{\tau_0\leq n\} = \Gamma \in \mathscr{G}_n$, $\forall n\in \mathds{N}_0$, y por tanto $\tau_0$ es un tiempo de parada.
+
+De aquí en adelante notar que $\bigcap_{i=n}^{n-1}A_i =\Gamma$ para cualesquiera conjuntos $A_i$ y $\forall n\in\mathds{N}_0$, es decir, la intersección vacía es igual al total. Fijado $N\in\mathds{N}_0$, consideramos ahora el conjunto $\{\tau_1= N\}$. Es claro que $\{\tau_1= N\}=(\bigcap_{i=0}^{N-1}\{X_i>a\})\cap \{X_N\leq a\}$. Dado que $X_i$ es $\mathscr{G}_N$-medible $\forall i\leq N$, tenemos que $\{X_i>a\}=\{X_i\leq a\}^c \in\mathscr{G}_N$, $\forall i\leq N$, donde usamos $(\cdot) ^c$ para notar el complementario de un conjunto. De igual forma, $\{X_N\leq a\}\in\mathscr{G}_N$, por lo que deducimos que $\{\tau_1 = N\}\in\mathscr{G}_N$, $\forall N\in\mathds{N}_0$, y $\tau_1$ es un tiempo de parada.
+
+Por último, fijamos $j\in\mathds{N}$, $j\geq 2$. Fijamos también $N\in\mathds{N}_0$. Distinguimos dos casos:
+\begin{itemize}
+\item \underline{Si $N<2(j-1)$}: Es fácil ver que $\{\tau_j=N\}=\emptyset\in \mathscr{G}_N$.
+\item \underline{Si $N\geq2(j-1)$}: Definimos los conjuntos $I(k):=\{0,\ldots ,k\}$, $\forall k\in \mathds{N}_0$. Consideramos el siguiente conjunto de funciones:
+$$F=\{f:I(2j-2)\rightarrow I(N)/ f(2j-2) = N; f(k)<f(k+1)\text{, }\forall k\in I(2j-2)\} $$
+
+Intuitivamente el anterior conjunto de funciones recoge las posibles formas de elegir de forma ordenada $2j-2$ índices de entre los $N$ primeros índices de la sucesión (ya que el último está fijo). Dado $f\in F$, definimos los siquientes conjuntos:
+$$A_f=\bigcap_{k=0}^{j-2}(\{X_{f(2k)}\leq a\} \cap (\bigcap_{l=f(2k)+1}^{f(2k+1)-1}\{X_{l}<b\}))$$
+$$B_f=\bigcap_{k=0}^{j-2}(\{X_{f(2k+1)}\geq b\} \cap (\bigcap_{l=f(2k+1)+1}^{f(2k+2)-1}\{X_{l}>a\}))$$
+
+Y vemos que:
+$$\{\tau_j = N\} = \bigcup_{f\in F}((\bigcap_{l=0}^{f(0)-1}\{X_{l}>a\})\cap A_f \cap B_f \cap \{X_N\leq a\})$$
+
+Como hicimos en el caso $j=1$, es fácil ver que estamos uniendo e interseccionando conjuntos que pertenecen a $\mathscr{G}_N$, y por tanto $\{\tau_j = N\}\in\mathscr{G}_N$.
+\end{itemize}
+
+Como fijamos un $N$ arbitrario, deducimos que $\tau_j$ es un tiempo de parada. De igual forma el $j$ fijado es arbitrario, y concluimos que $\tau_j$ es un tiempo de parada $\forall j\in\mathds{N}_0$.
+
+\end{proof}
+
+\begin{proposicion}\label{convexoMartingala}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n, \mathscr{G}_n\}_{n\in \mathds{N}_0}$ una submartingala sobre $(\Gamma , \mathcal{A}, P)$. Sea $\Phi$ una función creciente, convexa y continua, tal que $E[\Phi(X_n)]< + \infty$, $\forall n\in\mathds{N}_0$. Entonces $\{\Phi(X_n), \mathscr{G}_n\}_{n\in \mathds{N}_0}$ es una submartingala.
+\end{proposicion}
+
+\begin{proof}
+Esta proposición es una consecuencia directa de la propiedad \hyperref[PropS5]{2.3.(j)}. En efecto:
+$$ E[\Phi(X_{n+1})]/\mathscr{G}_n] \geq \Phi(E[X_{n+1}]/\mathscr{G}_n]) \overset{(1)}{\geq} \Phi(X_n)\text{, }c.s.\text{-}P_{\mathscr{G}_n}\text{, }\forall n\in\mathds{N}_0 $$
+
+donde en $(1)$ se ha usado que $\{X_n, \mathscr{G}_n\}_{n\in \mathds{N}_0}$ es una submartingala y que $\Phi$ es creciente.
+
+\end{proof}
+
+Ya tenemos las herramientas necesarias para demostrar la siguiente desigualdad. En esta demostración es clave el uso del teorema \ref{opcional}.
+
+\begin{teorema}\label{desigualdad}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n, \mathscr{G}_n\}_{n\in \mathds{N}_0}$ una submartingala sobre $(\Gamma , \mathcal{A}, P)$. Sean $a,b\in\mathds{R}, a<b$, $m\in\mathds{N}_0$. Entonces:
+$$E[U_m]\leq \frac{1}{b-a} E((X_m-a)^+)$$
+
+donde usamos $(\cdot )^+$ para notar la función parte positiva.
+
+\end{teorema}
+
+\begin{notacion}
+$s\wedge z = min\{s,z\}$
+\end{notacion}
+
+\begin{proof}
+
+Tomamos $Y_n := (X_n-a)^+$, $\forall n\in\mathds{N}_0$. La función $\Phi(s)=(s-a)^+$ claramente es continua, convexa y no decreciente. Por tanto, aplicando la proposición \ref{convexoMartingala}, tenemos que $\{Y_n\}_{n\in\mathds{N}_0}$ es una submartingala. Fijamos ahora $m\in\mathds{N}_0$. Es claro que por la definición de $\{\tau _j\}_{j\in \mathds{N}_0}$, se cumple que $\tau _{m+1}>m$, por lo que $Y_{\tau_{m+1}\wedge m}=Y_m$. Por tanto tenemos que:
+\begin{align*}
+Y_m &=Y_{\tau_{m+1}\wedge m}=Y_{\tau_{1}\wedge m}+\sum_{i=1}^m(Y_{\tau_{i+1}\wedge m}-Y_{\tau_{i}\wedge m})\\
+&= Y_{\tau_{1}\wedge m}+\sum_{i=1}^m(Y_{\tau_{i+1}\wedge m}-Y_{\xi_i\wedge m} +Y_{\xi_i\wedge m} -Y_{\tau_{i}\wedge m})\\
+&= Y_{\tau_{1}\wedge m}+\sum_{i=1}^m(Y_{\tau_{i+1}\wedge m}-Y_{\xi_i\wedge m}) +\sum_{i=1}^m (Y_{\xi_i\wedge m} -Y_{\tau_{i}\wedge m})
+\end{align*}
+
+Es claro que $Y_n\geq 0$, $\forall n\in \mathds{N}_0$ por como la hemos definido, y por tanto:
+$$Y_m \geq \sum_{i=1}^m(Y_{\tau_{i+1}\wedge m}-Y_{\xi_i\wedge m}) +\sum_{i=1}^m (Y_{\xi_i\wedge m} -Y_{\tau_{i}\wedge m})$$
+
+Por otro lado es fácil ver que:
+$$\sum_{i=1}^m (Y_{\xi_i\wedge m} -Y_{\tau_{i}\wedge m}) \geq \sum_{i=1}^{U_m} Y_{\xi_i\wedge m}\geq U_m (b-a)$$
+
+Y por tanto:
+$$Y_m \geq \sum_{i=1}^m(Y_{\tau_{i+1}\wedge m}-Y_{\xi_i\wedge m}) + U_m (b-a)$$
+
+Como hemos mencionado anteriormente, $\{Y_n\}_{n\in\mathds{N}_0}$ es una submartingala. Por otro lado, en vista de la proposición \ref{upcrossTParada}, es sencillo comprobar que $\tau_{i+1}\wedge m$ y $\xi_{i} \wedge m$ son tiempos de parada para $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$, $\forall i\in \{1,\ldots ,m\}$. También es claro que $\xi_{i} \wedge m\leq \tau_{i+1}\wedge m \leq m$, $c.s.\text{-}P$, y por tanto podemos aplicar el teorema \ref{opcional} para ver que $E[Y_{\tau_{i+1}\wedge m}-Y_{\xi_{i} \wedge m}]\geq 0$. Aplicando esperanzas a ambos lados de la desigualdad anterior:
+$$E[Y_m] \geq \sum_{i=1}^mE[Y_{\tau_{i+1}\wedge m}-Y_{\xi_i\wedge m}] + E[U_m](b-a) \geq (b-a)E[U_m]$$
+
+Como queríamos.
+
+\end{proof}
+
+Presentamos ahora el concepto de \emph{martingala inversa} (\emph{backward martingale}).
+
+\begin{definicion}[Martingala inversa]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{\mathscr{G}_{n}\}_{n\in \mathds{N}}$ una sucesión de $\sigma$-álgebras cumpliendo que:
+\begin{equation}\label{ecFiltInv}
+\forall n\in \mathds{N} \text{, }\mathscr{G}_{n+1}\subseteq\mathscr{G}_{n}\subseteq\mathcal{A}
+\end{equation}
+
+Sea $\{X_n\}_{n\in \mathds{N}}$ un proceso estocástico real (en tiempo discreto) definido sobre $(\Gamma, \mathcal{A}, P)$, con $X_n$ $\mathscr{G}_{n}$-medible e integrable para todo $n\in\mathds{N}$. Entonces diremos que $\{X_n, \mathscr{G}_n\}_{n\in\mathds{N}}$ es una martingala inversa si cumple que:
+$$ E[X_{n}/\mathscr{G}_{n+1}] = X_{n+1}\text{, }c.s.\text{-}P_{\mathscr{G}_{n+1}}\text{, }\forall n\in\mathds{N}$$
+\end{definicion}
+
+Introducimos la siguiente notación que nos permite adaptar el concepto de upcrossings a martingalas inversas.
+
+\begin{notacion}\label{upcrossNot}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in\mathds{N}}$ un proceso real en tiempo discreto definido sobre $(\Gamma , \mathcal{A}, P)$. Sean $a,b\in\mathds{R}, a<b$, $m\in\mathds{N}$. Consideramos el proceso estocástico  $\{X'_n\}_{n\in\mathds{N}_0}$ definido como sigue:
+\begin{equation}
+\begin{gathered}\label{ecUpcross}
+X'_n = X_{m-n} \text{, }\forall n\in \{0,\ldots , m-1\} \\
+X'_n = X_{n-m+1} \text{, }\forall n\geq m 
+\end{gathered}
+\end{equation}
+
+Notaremos por $U_{-m}[a,b](\{X_n\}_{n\in\mathds{N}})$ al número de upcrossings del intervalo $[a,b]$ entre los tiempos $0$ y $m-1$ por el proceso $\{X'_n\}_{n\in\mathds{N}_0}$, es decir, $U_{-m}[a,b](\{X_n\}_{n\in\mathds{N}}):= U_{m-1}[a,b](\{X'_n\}_{n\in\mathds{N}_0})$. Por comodidad lo notaremos por $U_{-m}$ cuando no de lugar a ambigüedad.
+\end{notacion}
+
+Y vemos que el teorema \ref{desigualdad} se puede adaptar de la siguiente manera.
+
+\begin{teorema}\label{desigualdadInv}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n, \mathscr{G}_n\}_{n\in\mathds{N}}$ una martingala inversa definida sobre $(\Gamma , \mathcal{A}, P)$. Sean $a,b\in\mathds{R}, a<b$, $m\in\mathds{N}$. Entonces:
+$$E[U_{-m}]\leq \frac{1}{b-a} E((X_1-a)^+)$$
+\end{teorema}
+
+\begin{proof}
+Fijado $m\in \mathds{N}_0$, consideramos el proceso estocástico $\{X'_n\}_{n\in\mathds{N}_0}$ definido como en (\ref{ecUpcross}). Consideramos también la sucesión de  $\sigma$-álgebras $\{\mathscr{G}'_n\}_{n\in\mathds{N}_0}$ definida como sigue:
+$$\mathscr{G}'_n = \mathscr{G}_{m-n} \text{, }\forall n\in \{0,\ldots , m-1\}$$
+$$\mathscr{G}'_n = \mathscr{G}_{n-m+1} \text{, }\forall n\geq m$$ 
+
+Vemos por tanto que:
+$$E[X'_{n+1}/\mathscr{G}'_n] = E[X_{m-n-1}/\mathscr{G}_{m-n}] \overset{(1)}{=} X_{m-n} = X'_{n} \text{, }c.s.\text{-}P_{\mathscr{G}'_n}\text{, }\forall n\in\{0,\ldots , m-2\}$$
+
+donde en $(1)$ se ha usado que $\{X_n, \mathscr{G}_n\}_{n\in\mathds{N}}$ es una martingala inversa. Además:
+$$\mathscr{G}'_{n} = \mathscr{G}_{m-n} \subseteq \mathscr{G}_{m-n-1} = \mathscr{G}'_{n+1}\text{, }\forall n\in\{0,\ldots , m-2\}$$
+
+Deducimos que entre los términos $0$ y $m-1$, $\{X'_n, \mathscr{G}'_n\}_{n\in\mathds{N}_0}$ se comporta como una martingala y, en particular, como una submartingala. Es fácil concluir que, como $U_{m-1}[a,b](\{X'_n\}_{n\in\mathds{N}_0})$ sólo tiene en cuenta dichos términos, aplicando el teorema \ref{desigualdad} se cumple que:
+$$E[U_{-m}] = E[U_{m-1}[a,b](\{X'_n\}_{n\in\mathds{N}_0})] \leq \frac{E[(X'_{m-1}-a)^+]}{b-a} = \frac{E[(X_{1}-a)^+]}{b-a}$$
+
+\end{proof}
+
+Por último antes de enunciar el teorema principal, enunciamos un teorema que será clave en su demostración.
+\begin{teorema}[Ley 0-1 de Kolmogorov]\label{Kolmog}
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}}$ una sucesión de variables aleatorias independientes, definidas sobre $(\Gamma, \mathcal{A}, P)$. Consideramos la $\sigma$-álgebra $\mathscr{T} = \bigcap_{k=1}^{+\infty}\sigma(X_k,X_{k+1},\ldots)$. Entonces cualquier variable aleatoria $\mathscr{T}$-medible es constante casi seguramente.
+\end{teorema}
+
+\subsection{Ley fuerte de los números grandes}
+
+Ya podemos enunciar y demostrar el resultado principal de esta sección, que nos permite asegurar la convergencia del estimador de Monte Carlo.
+
+\begin{teorema}[Ley fuerte de los números grandes]
+Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}}$ una sucesión de variables aleatorias independientes e idénticamente distribuidas, definidas sobre $(\Gamma, \mathcal{A}, P)$. Supongamos que
+$$E[|X_1|]<+\infty$$
+
+Para $N\in \mathds{N}$, consideramos el siguiente estimador de $(X_1,\ldots ,X_N)$:
+$$S_N:=\frac{1}{N}\sum_{i=1}^{N}X_i$$
+
+Entonces se cumple que:
+$$\lim_{N\to +\infty}S_N = E[X_1]\text{, } c.s.\text{-}P$$
+\end{teorema}
+
+\begin{proof}
+Dividiremos la demostración en 4 pasos.\\
+
+\textbf{Paso 1}
+
+Tomamos $\{\mathscr{G}_n\}_{n\in\mathds{N}}$ una sucesión de $\sigma$-álgebras definida como:
+$$\mathscr{G}_n:=\sigma(S_n,S_{n+1},...)\text{, }\forall n\in\mathds{N}$$
+
+Claramente $\{\mathscr{G}_n\}_{n\in\mathds{N}}$ satisface (\ref{ecFiltInv}). Tomamos ahora una sucesión de variables aleatorias $\{Y_n\}_{n\in\mathds{N}}$ definida como sigue:
+\begin{gather}\tag{$*_2$}\label{aux2}
+Y_n := E[X_1/\mathscr{G}_n]\text{, }\forall n\in \mathds{N}
+\end{gather}
+
+Claramente, para todo $n\in\mathds{N}$, $Y_n$ es $\mathscr{G}_n$-medible e integrable (por definición de esperanza condicionada). Vemos además que:
+$$E[Y_n/\mathscr{G}_{n+1}] = E[E[X_1/\mathscr{G}_n]\mathscr{G}_{n+1}] \overset{(1)}{=} E[X_1/\mathscr{G}_{n+1}] = Y_{n+1} \text{, }c.s.\text{-}P_{\mathscr{G}_{n+1}}\text{, }\forall n\in \mathds{N}$$
+
+donde en $(1)$ se ha utilizado la propiedad \hyperref[PropS4]{2.3.(i)}. Deducimos que $\{Y_n, \mathscr{G}_n\}_{n\in\mathds{N}}$ es una martingala inversa.
+
+Por último veamos que $Y_n = S_n$, $\forall n\in\mathds{N}$. Es claro que $S_n$ es $\mathscr{G}_n$-medible para todo $n\in \mathds{N}$. Por tanto:
+$$S_n \overset{(1)}{=} E[S_n/\mathscr{G}_n] = \frac{1}{n}\sum_{i=1}^nE[X_i/\mathscr{G}_n] \overset{(2)}{=} \frac{1}{n}\sum_{i=1}^nE[X_1/\mathscr{G}_n] = Y_n \text{, }c.s.\text{-}P_{\mathscr{G}_{n}}\text{, }\forall n\in \mathds{N}$$
+
+donde en $(1)$ se usa la propiedad \hyperref[PropS1]{2.3.(e)}, y en $(2)$ se usa que todas las variables $X_i$ están idénticamente distribuidas. Notar que, en particular, $Y_1=X_1$.\\
+
+\textbf{Paso 2}
+
+En este paso demostraremos que $\{Y_n\}_{n\in\mathds{N}}$ converge puntualmente casi seguramente a una variable aleatoria integrable $Y$. Fijamos $a,b\in \mathds{R}$. Teniendo en cuenta la notación introducida en \ref{upcrossNot}, vamos a considerar la sucesión $\{U_{-n}[a,b](\{Y_n\}_{n\in\mathds{N}})\}_{n\in\mathds{N}} = \{U_{-n}\}_{n\in\mathds{N}}$. $\{U_{-n}\}_{n\in\mathds{N}}$ es no decreciente por como está definida y, por tanto, es claro que $\forall \gamma \in\Gamma$, $\{U_{-n}(\gamma)\}_{n\in\mathds{N}}$ tiene límite en $\mathds{R}\cup \{+\infty\}$. Definimos la función $U:(\Gamma , \mathcal{A},P)\rightarrow \mathds{R}\cup \{+\infty\}$ como el límite puntual de $\{U_{-n}\}_{n\in\mathds{N}}$, es decir, $U(\gamma)=\lim_{n\to +\infty} U_{-n}(\gamma)$, $\forall \gamma\in\Gamma$. Vemos que, usando el teorema de la convergencia monótona, el teorema \ref{desigualdadInv} y la hipótesis de que $E[|X_1|]<+\infty$:
+\begin{align*}
+E[U]=\lim_{n\to +\infty}E[U_{-n}]&\leq \frac{1}{b-a}E[(Y_1-a)^+] = \frac{1}{b-a}E[(X_1-a)^+]\\
+&\leq \frac{1}{b-a}E[|X_1-a|]\leq \frac{1}{b-a}(E[|X_1|] + E[|a|]) < +\infty
+\end{align*}
+
+Por tanto la variable aleatoria $U$ es finita $c.s.\text{-}P$, y la sucesión $\{Y_n\}_{n\in\mathds{N}}$ cruza el intervalo $[a,b]$ un número finito de veces casi seguramente. De esto deducimos que existirá un conjunto $O\subset \Gamma$ de probabilidad nula tal que, fijado $\gamma\in \Gamma/O$, se cumplirá una de las dos siguientes posibilidades:
+\begin{itemize}
+\item $\exists N\in \mathds{N}$ tal que $\forall n\geq N$, $Y_n(\gamma)>a$, lo cual implica que:
+$$\liminf_{n\to +\infty} Y_n(\gamma) \geq a$$
+\item $\exists N\in \mathds{N}$ tal que $\forall n\geq N$, $Y_n(\gamma)<b$, lo cual implica que:
+$$\limsup_{n\to +\infty} Y_n(\gamma) \leq b$$
+\end{itemize}
+
+Por tanto:
+$$P(\{\liminf_{n\to +\infty}  Y_n < a, \limsup_{n\to +\infty}  Y_n > b\}) = 0 $$
+
+Dado que esto se cumple $\forall a,b \in \mathds{R}$, con $a<b$, deducimos que:
+$$P(\{\liminf_{n\to +\infty}  Y_n < \limsup_{n\to +\infty}  Y_n \}) = 0 $$
+
+Y podemos afirmar que $\liminf_{n\to +\infty}  Y_n = \limsup_{n\to +\infty}  Y_n$, $c.s.\text{-}P$, con lo que $\{Y_n\}_{n\in\mathds{N}}$ tiene límite en $\mathds{R}\cup \{-\infty, +\infty\}$, $c.s.\text{-}P$. Definimos la variable aleatoria $Y$ como el límite inferior punto a punto de $\{Y_n\}_{n\in\mathds{N}}$, es decir, $Y(\gamma) := \liminf_{n\to +\infty}  Y_n(\gamma)$, $\forall \gamma\in\Gamma$, y tenemos que $Y = \lim_{n\to +\infty}  Y_n$, $c.s.\text{-}P$. Como podemos observar:
+$$E[|Y_n|] \overset{(1)}{=} E[|E[X_1/\mathscr{G}_n]|]\overset{(2)}{\leq}E[E[|X_1|/\mathscr{G}_n]]\overset{(3)}{=}E[|X_1|]\text{, }\forall n\in\mathds{N}$$
+
+En la igualdad $(1)$ hemos usado la definición de $\{Y_n\}_{n\in\mathds{N}}$ en \hyperref[aux2]{($*_2$)}, en $(2)$ hemos usado la propiedad \hyperref[PropE5]{2.3.(k)} y en $(3)$ hemos usado la propiedad \hyperref[PropE6]{2.3.(d)}.
+
+Dado que el valor absoluto es una función continua, se cumple que $|Y| = \lim_{n\to +\infty} |Y_n|$, $c.s.\text{-}P$. Por último, aplicando el lema de Fatou y la desigualdad anterior obtenemos:
+$$E[|Y|]\leq \liminf_{n\to +\infty}E[|Y_n|]\leq E[|X_1|]< +\infty $$
+
+Con lo que $Y$ es absolutamente integrable, y por tanto, integrable.\\
+
+\textbf{Paso 3}
+
+Dado que no podemos asegurar que $\{Y_n\}_{n\in\mathds{N}}$ sea monótona ni acotada, no podemos aplicar el teorema de la convergencia monótona ni el de la convergencia dominada para afirmar que converge en el espacio $L_1(\Gamma,\mathcal{A} ,P)$ de las funciones integrables definidas sobre $(\Gamma,\mathcal{A} ,P)$. Por tanto vamos a demostrarlo utilizando otros métodos. Fijamos $C\in \mathds{R}^+$. Empezamos viendo que:
+\begin{align*}
+E[|Y-Y_n|] &=  E[|Y-Y_n|\mathds{1}_{\{|Y_n|\leq C\}}] + E[|Y-Y_n|\mathds{1}_{\{|Y_n|> C\}}]\\
+&\leq E[|Y-Y_n|\mathds{1}_{\{|Y_n|\leq C\}}] + E[(|Y|+|Y_n|)\mathds{1}_{\{|Y_n|> C\}}]\text{, }\forall n\in\mathds{N}
+\end{align*}
+
+Por otro lado, usando la definición de $\{Y_n\}_{n\in\mathds{N}}$ (\hyperref[aux2]{($*_2$)}), la propiedad \hyperref[PropS2]{2.3.(g)}, y la propiedad \hyperref[PropE3]{2.3.(k)}:
+\begin{align*}
+|Y_n| \mathds{1}_{\{|Y_n|> C\}} &= |E[X_1/\mathscr{G}_n]\mathds{1}_{\{|Y_n|> C\}}| \\
+&= |E[X_1 \mathds{1}_{\{|Y_n|> C\}}/\mathscr{G}_n]|\\
+&\leq E[|X_1| \mathds{1}_{\{|Y_n|> C\}}/\mathscr{G}_n]\text{, } c.s.\text{-}P \text{, }\forall n\in\mathds{N}
+\end{align*}
+
+Por tanto:
+$$E[|Y_n| \mathds{1}_{\{|Y_n|> C\}}]\leq E[E[|X_1| \mathds{1}_{\{|Y_n|> C\}}/\mathscr{G}_n]] = E[|X_1| \mathds{1}_{\{|Y_n|> C\}}] \text{, }\forall n\in\mathds{N}$$
+
+donde se ha usado la propiedad \hyperref[PropE6]{2.3.(d)}. Utilizando esta desigualdad, tomamos $Z :=|Y|+|X_1|$, y  vemos que:
+\begin{gather}\tag{$*_3$}\label{aux3}
+E[|Y-Y_n|]\leq E[|Y-Y_n|\mathds{1}_{\{|Y_n|\leq C\}}] + E[Z\mathds{1}_{\{|Y_n|> C\}}] \text{, }\forall n\in\mathds{N}
+\end{gather}
+
+Claramente, por ser $Y$ integrable, $|Y-Y_n|\mathds{1}_{\{|Y_n|\leq C\}}$ está acotada $c.s.\text{-}P$, por lo que podemos usar el teorema de la convergencia dominada para asegurar que:
+\begin{gather}\tag{$*_4$}\label{aux4}
+\lim_{n\to +\infty} E[|Y-Y_n|\mathds{1}_{\{|Y_n|\leq C\}}] = E[\lim_{n\to +\infty} |Y-Y_n|\mathds{1}_{\{|Y_n|\leq C\}}] = E[0] = 0
+\end{gather}
+
+Fijamos ahora $B\in\mathds{R}^+$, y vemos que:
+$$Z\mathds{1}_{\{|Y_n|> C\}}\leq Z\mathds{1}_{\{Z> B\}} + B \mathds{1}_{\{|Y_n|> C\}} \text{, } c.s.\text{-}P \text{, }\forall n\in\mathds{N}$$
+
+Y por tanto:
+\begin{gather}\tag{$*_5$}\label{aux5}
+E[Z\mathds{1}_{\{|Y_n|> C\}}]\leq E[Z\mathds{1}_{\{Z> B\}}] + BP(|Y_n|>C)\text{, }\forall n\in\mathds{N}
+\end{gather}
+
+Dado que $B$ y $C$ son reales positivos arbitrarios, y dado que $Y$ y $X_1$ son integrables (y por tanto absolutamente integrables), para todo $\epsilon>0$ podemos elegir $B_{\epsilon}$ lo suficientemente grande tal que:
+\begin{gather}\tag{$*_6$}\label{aux6}
+E[Z\mathds{1}_{\{Z> B_{\epsilon}\}}]<\epsilon
+\end{gather}
+
+Y de igual forma podemos elegir $C_{\epsilon}$ lo suficientemente grande tal que:
+\begin{gather}\tag{$*_7$}\label{aux7}
+B_{\epsilon}P(|Y|>C_{\epsilon})<\epsilon
+\end{gather}
+
+Utilizando que $\{\mathds{1}_{|Y_n|>C}\}_{n\in\mathds{N}}$ converge puntualmente a $\mathds{1}_{|Y|>C}$, $\forall C\in\mathds{R}^+$ casi seguramente, y el teorema de la convergencia dominada, vemos que:
+$$ \lim_{n\to +\infty} B_{\epsilon}P(|Y_n|>C_{\epsilon}) = B_{\epsilon}P(|Y|>C_{\epsilon})< \epsilon $$
+
+Por último, fijamos $\epsilon>0$, y tomando límites en la desigualdad \hyperref[aux3]{($*_3$)}, y aplicando los resultados obtenidos en \hyperref[aux4]{($*_4$)}, \hyperref[aux5]{($*_5$)}, \hyperref[aux6]{($*_6$)} y \hyperref[aux7]{($*_7$)}, vemos que:
+\begin{align*}
+\lim_{n\to +\infty}E[|Y-Y_n|] & \leq \lim_{n\to +\infty} E[|Y-Y_n|\mathds{1}_{\{|Y_n|\leq C_{\epsilon }\}}] + \lim_{n\to +\infty} E[Z\mathds{1}_{\{|Y_n|> C_{\epsilon}\}}]\\
+& \leq E[Z\mathds{1}_{\{Z> B_{\epsilon}\}}] + \lim_{n\to +\infty} B_{\epsilon}P(|Y_n|>C_{\epsilon})\\
+&< \epsilon + B_{\epsilon}P(|Y|>C_{\epsilon}) < 2\epsilon 
+\end{align*}
+
+Como esto se cumple para todo $\epsilon>0$, concluimos que:
+$$\lim_{n\to +\infty}E[|Y-Y_n|] = 0 $$
+
+Con lo que acabamos de demostrar que $\{Y_n\}_{n\in\mathds{N}}$ converge en $L_1$ a $Y$. Esto implica que $E[Y] = \lim_{n\to +\infty}E[Y_n]$. Aplicando la definición de $\{Y_n\}_{n\in\mathds{N}}$ en \hyperref[aux2]{($*_2$)}, y la propiedad \hyperref[PropE6]{2.3.(d)}:
+$$E[Y] = \lim_{n\to +\infty}E[Y_n] = \lim_{n\to +\infty}E[E[X_1]/\mathcal{G}_n] = E[X_1] $$
+
+\textbf{Paso 4}
+
+Por último queremos demostrar que $Y$ es constante casi seguramente. Recordemos que en el paso 1 comprobamos que $Y_n = S_n$, $\forall n\in\mathds{N}$. Consideramos la $\sigma$-álgebra $\mathscr{T} = \bigcap_{k=1}^{+\infty}\sigma(X_k,X_{k+1},\ldots)$. Fijado $k\in\mathds{N}$, vemos que:
+$$Y=\lim_{N\to +\infty}S_N = \lim_{N\to +\infty} \frac{X_1+\ldots +X_N}{N} = \lim_{N\to +\infty} \frac{X_{k}+\ldots +X_{N+k}}{N}$$
+
+Por tanto $Y$ es $\sigma(X_k,X_{k+1},\ldots )$-medible por ser límite de funciones $\sigma(X_k,X_{k+1},\ldots )$-medibles. Dado que $k$ es arbitrario, se obtiene que $Y$ es $\sigma(X_k,X_{k+1},\ldots )$-medible, $\forall k \in \mathds{N}$, con lo que $Y$ es $\mathscr{T}$-medible. Deducimos usando el teorema \ref{Kolmog} que $Y$ es constante, y dado que al final del paso 3 comprobamos que $E[Y] = E[X_1]$, podemos concluir el resultado buscado:
+$$\lim_{N\to +\infty}S_N = Y = E[X_1] \text{, } c.s.\text{-}P$$
+
+\end{proof}
+
+Este teorema nos asegura la convergencia del estimador de Monte Carlo definido en (\ref{estMC}) cuando el número de muestras tiende a infinito. En efecto, sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico, sea $X:(\Gamma , \mathcal{A}, P)\rightarrow (E,\mathscr{B}_E)$ un vector aleatorio y sea $g:(E,\mathscr{B}_E)\rightarrow (\mathds{R},\mathscr{B})$ una función medible. Considerando $\{x^{(r)}\}_{r\in\mathds{N}}$ una sucesión de vectores aleatorios idénticamente distribuidos según la distribución de $X$ e independientes, entonces $\{g(x^{(r)})\}_{r\in\mathds{N}}$ es una sucesión de variables aleatorias idénticamente distribuidas según la distribución de $g(X)$ e independientes. La ley fuerte de los números grandes nos asegura por tanto que los estimadores:
+$$S_N = \frac{1}{N}\sum_{i=0}^N g(x^{(i)}) $$
+
+convergen a $E[g(x^{(1)})] = E[g(X)]$ cuando $N$ tiende a infinito casi seguramente.
+
+\section{Métodos de Monte Carlo para muestreo de variables aleatorias}
+
+Hemos visto un estimador que nos permite aproximar la esperanza de una función bajo una distribución a partir de muestras independientes siguiendo dicha distribución, que es uno de los objetivos de los métodos de Monte Carlo. En esta sección estudiaremos diversos métodos que nos permiten abarcar el otro objetivo, tomar muestras que sigan una distribución de probabilidad. Notar que hay ciertas distribuciones que son fácilmente simuladas computacionalmente, como por ejemplo la distribución uniforme unidimensional, cuyas muestras se obtienen a partir de un generador de números pseudoaleatorios.
+
+\subsection{Método de inversión}
+
+Este método se utiliza para muestrear variables aleatorias y se basa en hallar una inversa continua a la izquierda de la función de distribución de la variable que queremos muestrear. Empezamos definiendo dicha función inversa.
+
+\begin{definicion}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico, sea $X$ una variable aleatoria y sea $F_X$ su función de distribución. Definimos la inversa (continua a la izquierda) de $F_X$, notada por $F_X^-$, como:
+\begin{align*}
+F_X^-:[0,1]&\rightarrow \mathds{R}\\
+u&\rightarrow F_X^-(u)=\inf \{y\in\mathds{R}/ F(y)\geq u\}
+\end{align*}
+\end{definicion}
+
+El método de inversión se basa en el siguiente teorema.
+
+\begin{teorema}[Método de inversión]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico, sea $X$ una variable aleatoria definida sobre $(\Gamma , \mathcal{A}, P)$, sea $F_X$ su función de distribución. Sea $V\sim U(0,1)$ una variable aleatoria definida sobre $(\Gamma , \mathcal{A}, P)$, donde notamos por $U(a,b)$ a la distribución uniforme en el intervalo $[a,b]$. Entonces las variables aleatorias $Y:=F_X^-(V)$, $X$ están idénticamente distribuidas, o lo que es lo mismo, $F_X(t) = F_Y(t)$, $\forall t\in\mathds{R}$.
+\end{teorema}
+
+\begin{proof}
+Como vemos $F_V(s) = P(V\leq s) = s$, $\forall s\in [0,1]$. Deducimos que, dado $t\in \mathds{R}$:
+$$F_Y(t) = P(Y\leq t) = P(F_X^-(V)\leq t) \overset{(1)}{=} P(V\leq F_X(t)) = F_X(t)$$
+
+En la igualdad $(1)$ se ha usado que $\{F_X^-(V)\leq t\} = \{V\leq F_X(t)\}$. En efecto, dado $\gamma \in \{F_X^-(V)\leq t\}$, tenemos que, por ser $F_X$ no decreciente y continua por la derecha, $F_X(F_X^-(V(\gamma)))\geq V(\gamma)$, y por tanto $F_X(t)\geq V(\gamma)$, con lo que $\gamma\in \{V\leq F_X(t)\}$. Por otro lado, dado $\gamma \in \{V\leq F_X(t)\}$, es claro que por definición de $F_X^-$, $F_X^-(V(\gamma))\leq t$, con lo que $\gamma \in \{F_X^-(V)\leq t\}$ y tenemos lo que queríamos.
+
+Por tanto concluimos que $X$ e $Y$ están idénticamente distribuidas.
+
+\end{proof}
+
+Surgen dos problemas a la hora de utilizar este método. Por un lado tenemos la limitación de que sólo es aplicable para variables aleatorias, y por tanto no se puede aplicar en múltiples dimensiones, y por otro lado no siempre podremos hallar de manera sencilla la inversa de la función de distribución de manera analítica. Además, dada una función $f:\mathds{R}\rightarrow \mathds{R}_0^+$ continua, habrá ocasiones en que queramos muestrear una variable aleatoria cuya función de densidad sea $\frac{f}{\int_{\mathds{R}}f(x)dx}$, y no siempre podremos calcular la integral de la función analíticamente.
+
+\begin{ejemplo}[Variables aleatorias discretas]
+Un ejemplo claro de distribuciones de probabilidad respecto a las que podemos generar muestras usando el método de inversión son aquellas asociadas a variables aleatorias discretas. Supongamos que la función masa de probabilidad de una variable aleatoria $X$ viene dada por:
+$$P(X=x_i) = p_i\text{, }x_i\in\mathds{R} \text{, }p_i\in [0,1]\text{, }\forall i\in I=\{1,2,\ldots \}\subseteq\mathds{N}$$
+
+con $\sum_{i\in I}p_i = 1$. Entonces dada una muestra $u$ generada según la distribución uniforme en $[0,1]$, se puede generar una muestra $x$ siguiendo la distribución de $X$ tomando $x=x_j$, con $j$ satisfaciendo:
+$$\sum_{i=1}^{j-1}p_i < u \leq \sum_{i=1}^jp_i$$
+\end{ejemplo}
+
+\subsection{Método de rechazo}
+
+Este método nos permite muestrear una distribución a partir de otra distribución conocida. Sea $(\Gamma,\mathcal{A}, P)$ un espacio probabilístico, y sean $X$, $Y$ dos vectores aleatorios continuos definidos sobre $(\Gamma,\mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$, $E\subseteq \mathds{R}^n$. Consideremos $f_X$, $f_Y$ las funciones de densidad de $X$ e $Y$, y supongamos que existe $c\geq 1$ tal que $f_X(p)\leq c f_Y(p)$, $\forall p\in\mathds{R}^n$. Supongamos también que sabemos tomar muestras independientes que sigan la distribución de la variable $Y$. Entonces el método de rechazo consiste en tomar una muestra $y$ siguiendo la distribución de $Y$, y una muestra $v$ siguiendo la distribución uniforme en $[0,1]$. Entonces si $v\leq \frac{f_X(y)}{cf_Y(y)}$, $y$ es una muestra siguiendo la distribución de $X$. El nombre del método corresponde al hecho de que si las muestras $y$, $v$ no satisfacen la desigualdad anterior, son rechazadas y se toman otras muestras.
+
+El siguiente teorema nos asegura que tomando sucesivas muestras, llegará un punto en que una muestra sea aceptada, es decir, no rechazaremos infinitas muestras. También nos asegura que las muestras aceptadas siguen la distribución deseada.
+
+\begin{teorema}
+Sea $\{Y_n\}_{n\in\mathds{N}}$ una sucesión de vectores aleatorios independientes e idénticamente distribuidos con función de densidad $g$, definida sobre en $\mathds{R}^n$. Sea $\{V_n\}_{n\in\mathds{N}}$ una sucesión de variables aleatorias independientes e idénticamente distribuidas siguiendo una distribución uniforme en $[0,1]$. Supongamos que todos los términos de $\{Y_n\}_{n\in\mathds{N}}$ son a su vez independientes de todos los términos de $\{V_n\}_{n\in\mathds{N}}$. Sea $X$ un vector aleatorio con función de densidad $f$, definida sobre $\mathds{R}^n$. Supongamos que se cumple que $f(p)\leq c g(p)$, $\forall p\in\mathds{R}^n$ para cierto $c\geq 1$. Consideramos la variable aleatoria $M$ y el vector aleatorio $X'$, definidos como sigue:
+$$M:=\inf\{k\in \mathds{N} / U_k\leq \frac{f(Y_k)}{c g(Y_k)}\} $$
+$$X':=Y_M$$
+
+Entonces $M$ es finito casi seguramente (en particular $E[M]=c$), y $X'$ sigue la misma distribución que $X$. Además $X'$ y $M$ son independientes y $P(M=k) = \frac{1}{c}(1-\frac{1}{c})^{k-1}$, $\forall k\in \mathds{N}$.
+\end{teorema}
+\begin{proof}
+Por ser $U_k$ independiente de $Y_k$, $\forall k\in\mathds{N}$, tenemos que la función de densidad conjunta de $U_k$ e $Y_k$ cumple que $f_{(U_k,Y_k)}=f_{U_k}f_{Y_k} = g$, ya que la función de densidad de $U_k$ es constantemente igual a $1$. Por tanto, dado $A \in \mathscr{B}^n$:
+\begin{align*}
+P(U_k\leq \frac{f(Y_k)}{cg(Y_k)}, Y_k\in A) &= \int_{A} \int_0^{\frac{f(p)}{cg(p)}} f_{(U_k,Y_k)}(u,p)\text{ }dudp\\
+&= \int_{A} \frac{f(p)}{cg(p)} g(p)\text{ } dp = \frac{1}{c}\int_{A} f(p)\text{ } dp  \text{, }\forall k\in\mathds{N}
+\end{align*}
+
+Tomando $A=\mathds{R}^n$ y usando que $f$ es una función de densidad (y por tanto su integral en $\mathds{R}^n$ vale $1$), deducimos que $P(U_k\leq \frac{f(Y_k)}{cg(Y_k)}) = \frac{1}{c}\text{, }\forall k\in\mathds{N}$. Por tanto, usando que todas las variables y vectores son independientes, deducimos que $\forall k\in\mathds{N}$:
+\begin{align*}
+P(M=k)&=\prod_{i=1}^{k-1}P(U_i > \frac{f(Y_i)}{cg(Y_i)}) P(U_k\leq \frac{f(Y_k)}{cg(Y_k)})\\
+&=\prod_{i=1}^{k-1}(1-P(U_i \leq \frac{f(Y_i)}{cg(Y_i)})) \frac{1}{c}\\
+&=(1-\frac{1}{c})^{k-1}\frac{1}{c}
+\end{align*}
+
+Con lo que $M$ sigue una distribución geométrica de parámetro $\frac{1}{c}$, por lo que su esperanza es igual a $E[M] = c < +\infty$, y deducimos que $M$ es finito casi seguramente. También vemos que $\forall k\in\mathds{N}$, $\forall A \in \mathscr{B}^n$:
+\begin{align*}
+P(M=k, Y_M\in A) &= P(M=k,Y_k\in A)\\
+&=\prod_{i=1}^{k-1}P(U_i > \frac{f(Y_i)}{cg(Y_i)}) P(U_k\leq \frac{f(Y_k)}{cg(Y_k)}, Y_k\in A)\\
+&=\prod_{i=1}^{k-1}(1-P(U_i \leq \frac{f(Y_i)}{cg(Y_i)})) \frac{1}{c}\int_{A} f(p)\text{ } dp\\
+&=(1-\frac{1}{c})^{k-1}\frac{1}{c}\int_{A} f(p)\text{ } dp = P(M=k) \int_{A} f(p)\text{ } dp
+\end{align*}
+
+De lo que deducimos que $M$ y $X'=Y_M$ son independientes, que la distribución de probabilidad de $X'$ viene dada por $P(X'\in A) = \int_{A} f(p)\text{ } dp$, y que por tanto la función de densidad de $X'$ es $f$, concluyendo que $X'$ sigue la misma distribución que $X$.\\
+
+\end{proof}
+
+Supongamos que sabemos evaluar dos funciones continuas $f^*:\mathds{R}^n\rightarrow \mathds{R}_0^+$ $g^*:\mathds{R}^n\rightarrow \mathds{R}_0^+$, que $f*(p)\leq c' g*(p)$, $\forall p\in\mathds{R}^n$ para cierto $c'\geq 1$, que se pueden tomar muestras tales que su función de densidad es $g = \frac{g^*}{\int_{\mathds{R}^n}g^*(s)ds} $ y que queremos generar muestras cuya función de densidad sea $f = \frac{f^*}{\int_{\mathds{R}^n}f^*(s)ds}$. Una ventaja de este método es que se puede aplicar a las funciones $g*$ y $f*$ sin necesidad de calcular su integral, considerando la constante $c'$. En efecto, basta tomar $f$, $g$, y $c=\frac{c'\int_{\mathds{R}^n}g^*(s)ds}{\int_{\mathds{R}^n}f^*(s)ds}$ para ver que el método sigue siendo válido.
+
+Por otro lado, uno de los problemas de este algoritmo que nos encontramos al aplicarlo en múltiples dimensiones es hallar la constante $c$. Además al aumentar la dimensionalidad usualmente la constante será grande, con lo que el ratio de aceptación $\frac{1}{c}$ será bajo, y rechazaremos muchas muestras antes de encontrar una válida. Otro problema de este método es que necesitamos una función de densidad $g$ que, multiplicada por una constante, sea mayor o igual que la función objetivo, y esto no siempre será posible.
+
+El método de rechazo se usa en renderización para depurar algoritmos que hacen uso de otros métodos de Monte Carlo. El ejemplo más clásico de aplicación del método de rechazo es generar muestras uniformemente distribuidas en un círculo de la siguiente manera.
+
+\begin{ejemplo}[Muestreando un círculo]
+Supongamos que queremos tomar muestras uniformes en el círculo de radio unidad centrado en el origen. Este procedimiento se puede generalizar fácilmente a radio y centro arbitrarios. Deducimos que la función de densidad que queremos muestrear es $f(x,y) = \frac{4}{\pi}$, $\forall (x,y)\in\mathds{R}^2$ tal que $x^2+y^2\leq 1$.
+
+Por otro lado, como ya se mencionó, en muchos lenguajes de programación es usual disponer de un generador de números pseudoaleatorios, con lo que podemos generar fácilmente muestras siguiendo la distribución uniforme unidimensional en $[0,1]$. Sean $v_1$, $v_2$ dos muestras siguiendo la distribución uniforme en $[0,1]$, entonces $(v_1,v_2)$ sigue la distribución uniforme en $[0,1]^2$. Por tanto la otra función de densidad que utilizaremos para aplicar el método de rechazo es la distribución $g(x,y) = 1$, $\forall (x,y)\in [0,1]^2$. Claramente $f(x,y)\leq \frac{4}{\pi}g(x,y)$, $\forall (x,y)\in \mathds{R}^2$
+
+Como vemos, dado $(x,y)\in [0,1]^2$, $\frac{f(x,y)}{\frac{4}{\pi}g(x,y)} = 1$ si $x^2+y^2\leq 1$, $\frac{f(x,y)}{\frac{4}{\pi}g(x,y)} = 0$ en otro caso. Por tanto no hay que generar muestras uniformes adicionales, si la muestra generada está dentro del círculo unidad la aceptaremos y la rechazaremos en caso contrario.
+\end{ejemplo}
+
+\subsection{Método de Metropolis}
+
+En primer lugar vamos a describir el método. Después introduciremos una serie de definiciones y teoremas que nos llevarán a la demostración de que el método produce los resultados esperados.
+
+Sea $(\Gamma,\mathcal{A}, P)$ un espacio probabilístico, y sea $X$ un vector aleatorio continuo definido sobre $(\Gamma,\mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$, $E\subseteq \mathds{R}^n$. Consideremos $f_X$ la función de densidad de $X$, y consideremos una función $T:E\times E\rightarrow \mathds{R}_0^+$ tal que $T_x:=T(x,\cdot)$ es una función de densidad en $E$ para todo $x\in E$. Supongamos que $T_x(s)=0$ para todo $s$ tal que $f_X(s)=0$. Supongamos también que el vector aleatorio con función de densidad $T_x$ es fácil de simular para todo $x\in E$. Consideramos la función $a:E\times E\rightarrow \mathds{R}_0^+$ definida de la siguiente manera:
+$$a(x,x')=\min\{1,\frac{f_X(x')T(x',x)}{f_X(x)T(x,x')}\} $$
+
+Entonces el algoritmo básico del método de Metropolis para generar $N$ muestras es el descrito a continuación.
+
+\begin{enumerate}
+\item \label{metMetro} Partimos de un punto $x_i$, con $i=0$.
+\item Generamos una muestra $x'$ con función de densidad $T(x_i,\cdot)$, y una muestra $v$ con distribución uniforme en $[0,1]$.
+\item Calculamos $a=\min\{1,\frac{f_X(x')T(x',x_i)}{f_X(x_i)T(x_i,x')}\}$
+\item Si $v<a$, entonces $x_{i+1}=x'$. En caso contrario, $x_{i+1}=x_i$.
+\item Tomamos $i=i+1$, y si $i\leq N$, repetimos desde 2.
+\end{enumerate}
+
+Este método nos devolverá un conjunto de muestras $\{x_n\}_{n\in \{1,\ldots ,N\}}$. Vamos ahora a enunciar la notación, las definiciones y los resultados necesarios para demostrar la convergencia del método hacia la distribución objetivo.
+
+\begin{definicion}[Filtración natural]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso estocástico en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$. Entonces se denomina filtración natural de $\{X_n\}_{n\in \mathds{N}_0}$ a la sucesión de $\sigma$-álgebras $\{\sigma(X_0,\ldots , X_n)\}_{n\in \mathds{N}_0}$.
+\end{definicion}
+
+\begin{definicion}[Proceso de Markov respecto a la filtración natural]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso estocástico en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$con valores en $(E,\mathscr{B}_E)$. Entonces se dirá que $\{X_n\}_{n\in \mathds{N}_0}$ es un proceso de Markov si lo es respecto a su filtración natural, es decir, si cumple que:
+$$\forall n \in \mathds{N}\text{, }\forall B\in \mathscr{B}_E\text{, } P(X_n\in B/X_0,\ldots , X_n) = P(X_n\in B/X_{n-1}) $$
+\end{definicion}
+
+\begin{notacion}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $X = (X_1,\ldots X_n)$ un vector aleatorio definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$, $E\subseteq \mathds{R}^n$. Entonces para $y = (y_1,\ldots ,y_n) \in\mathds{R}^n$, notaremos por $\{X\leq y\}$ al conjunto $\{X_1\leq y_1,\ldots ,X_n\leq y_n\}$, y notaremos por $I_y$ al conjunto $(-\infty ,y_1]\times\ldots\times (-\infty ,y_n]$.
+\end{notacion}
+
+\begin{definicion}[Proceso de Markov homogéneo]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Entonces se dirá que $\{X_n\}_{n\in \mathds{N}_0}$ es un proceso de Markov homogéneo si cumple que:
+$$\forall n \in \mathds{N}\text{, }\forall B\in \mathscr{B}_E\text{, }\forall x\in E \text{, } P(X_n\in B/X_{n-1}=x) = P(X_1\in B/X_0=x) $$
+
+En cuyo caso definimos la función de transición en un paso, $P(x,B)$, como:
+$$\forall B\in \mathscr{B}_E \text{, }\forall x\in E\text{, } P(x,B) = P(X_1\in B/X_0=x) $$
+
+De igual forma, definimos la función de distribución de transición en un paso como:
+$$\forall y\in \mathds{R}^n \text{, }\forall x\in E\text{, } F(y/x) = P(X_1\leq y/X_0=x)$$
+
+Y, por último, la función de densidad de transición en un paso, $f(y/x)$, se define como la función que cumple que:
+$$\forall y\in \mathds{R}^n \text{, }\forall x\in E\text{, } \int_{I_y}f(s/x) ds = F(y/x)$$
+\end{definicion}
+
+\begin{proposicion}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Entonces las probabilidades de transición en $n$ pasos son independientes del instante de tiempo en el que se realiza la transición, es decir:
+$$\forall n,m \in \mathds{N}\text{, }\forall B\in \mathscr{B}_E \text{, }\forall x\in E\text{, } P(X_{m+n}\in B/X_{m}=x) = P(X_n\in B/X_0=x) $$
+\end{proposicion}
+
+\begin{definicion}[Distribución de transición en $k$ pasos]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Definimos la función de transición en $k$ pasos, $P_k(x,B)$, como:
+$$\forall n \in \mathds{N}\text{, }\forall B\in \mathscr{B}_E \text{, }\forall x\in E\text{, } P_k(x,B) = P(X_k\in B/X_0=x) $$
+\end{definicion}
+
+\begin{definicion}[Distribución estacionaria]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Una distribución $\pi$ sobre $(E,\mathscr{B}_E)$ se dice que es estacionaria frente a $P(x,B)$ si cumple que:
+$$\forall B\in\mathds{B}_E\text{, } \pi(B) = \int_E P(x,B) \pi(dx)$$
+
+Una función de distribución $G$ sobre $\mathds{R}^n$ es estacionaria frente a la función de distribución de transición $F(y/x)$ si cumple que:
+$$\forall y\in\mathds{R}^n\text{, } G(y) = \int_E F(y/x) dG(x)$$
+
+Una función de densidad $g$ sobre $\mathds{R}^n$ es estacionaria frente a la función de densidad de transición $f(y/x)$ si cumple que:
+$$\forall y\in\mathds{R}^n\text{, } g(y) = \int_E f(y/x) g(x)dx$$
+\end{definicion}
+
+\begin{definicion}[Proceso de Markov irreducible]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Se dice que $\{X_n\}_{n\in \mathds{N}_0}$ es $\sigma$-irreducible si existe una medida no nula $\sigma$-finita $\Phi$ definida sobre $(E,\mathscr{B}_E)$ tal que para todo $B\in \mathscr{B}_E$, con $\Phi(B)>0$, y para todo $x\in E$, existe un entero positivo $k = k(x,B)$ tal que $P_k(x,B)>0$.
+\end{definicion}
+
+\begin{definicion}[Proceso de Markov aperiódico]
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Supongamos que $\pi$ es una distribución estacionaria. Se dice que $\{X_n\}_{n\in \mathds{N}_0}$ es aperiódico si no existe $d\geq 2$ y conjuntos disjuntos $S_1,\ldots ,S_d \in \mathscr{B}_E$ cumpliendo que:
+$$P(x,S_{i+1}) = 1\text{, }\forall x\in S_i\text{, }\forall i\in \{1,\ldots ,d-1\} $$
+$$P(x,S_1) = 1\text{, }\forall x\in S_d$$
+$$\pi(S_1)>0$$
+\end{definicion}
+
+\begin{definicion}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Se dice que $\{X_n\}_{n\in \mathds{N}_0}$ es reversible con respecto a una función de densidad $g$ definida sobre $\mathds{R}^n$ si cumple que:
+\begin{equation}\label{detBal}
+g(x)f(y/x) = g(y)f(x/y)\text{, }\forall x,y \in E
+\end{equation}
+
+En cuyo caso diremos que $g$ cumple la propiedad de balance detallado.
+\end{definicion}
+
+\begin{definicion}[Función delta de Dirac]\label{deltaDirac}
+La función delta de Dirac, notada por $\delta:\mathds{R}\rightarrow \mathds{R}$, es una función que está definidad de tal manera que cumple que:
+$$\delta(x) = 0\text{, } \forall x\neq 0\hspace{0.5cm} \int_{\mathds{R}}\delta(x)\text{ }dx= 1$$
+
+Una importante propiedad es la función delta de Dirac es que dado $x_0\in\mathds{R}$, $f:\mathds{R}\rightarrow \mathds{R}$:
+$$\int_{B}\delta(x-x_0)f(x)\text{ }dx= \mathds{1}_B(x_0) f(x_0)\text{, }\forall B\in \mathscr{B}$$
+
+Esta función se puede generalizar a $\mathds{R}^n$, definiendola de la siguiente manera:
+$$\delta_n(x_1,\ldots ,x_n) = \delta(x_1)\ldots \delta(x_n){, } \forall (x_1,\ldots ,x_n)\in \mathds{R}^n$$
+
+Manteniendose la propiedad de que, dado $x_0\in\mathds{R}^n$, $f:\mathds{R}^n\rightarrow \mathds{R}^n$:
+$$\int_{B}\delta_n(x-x_0)f(x)\text{ }dx= \mathds{1}_B(x_0) f(x_0)\text{, }\forall B\in \mathscr{B}$$
+\end{definicion}
+
+Una vez vistas estas definiciones, demostraremos la siguiente proposición.
+
+\begin{proposicion}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Si una función de densidad $g$ definida sobre $\mathds{R}^n$ cumple la propiedad de balance detallado, entonces $g$ es estacionaria.
+\end{proposicion}
+
+\begin{proof}
+Basta integrar a un lado de la igualdad (\ref{detBal}) y aplicarla:
+$$\int_E g(x)f(y/x)dx = \int_E g(y)f(x/y)dx = g(y)\int_E f(x/y)dx = g(y) \text{, }\forall y\in\mathds{R}^n$$
+
+donde se ha usado que, dado $y\in\mathds{R}^n$, $f(\cdot/y)$ es una función de densidad, y por tanto tiene integral $1$.
+
+\end{proof}
+
+Y llegamos al teorema clave que nos permitirá demostrar que el método de Metropolis converge.
+
+\begin{teorema}\label{teoMetro}
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathcal{D})$. Si $\mathcal{D}$ es generada por un conjunto numerable y $\{X_n\}_{n\in \mathds{N}_0}$ es $\Phi$-irreducible, aperiódico y tiene una distribución estacionaria $\pi$. Entonces:
+$$\forall B\in\mathscr{B}_E \text{, } \lim_{n\to +\infty}P(X_n\in B) = \pi(B)$$
+\end{teorema}
+
+
+Ya tenemos todo lo necesario para demostrar la convergencia del método de Metropolis.
+
+\begin{teorema}
+Sea $(\Gamma,\mathcal{A}, P)$ un espacio probabilístico, y sea $X$ un vector aleatorio continuo definido sobre $(\Gamma,\mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Sea $f_X$ la función de densidad de $X$, y sea $P_X$ la distribución de probabilidad de $X$. Consideremos una función $T:E\times E\rightarrow \mathds{R}_0^+$ cumpliendo que $T(y,\cdot)$ es una función de densidad en $E$ para todo $y\in E$. Supongamos que, dado $y\in E$, $T(y,s)=0$ para todo $s$ tal que $f_X(s)=0$. Consideramos la función $a:E\times E\rightarrow \mathds{R}_0^+$ definida de la siguiente manera:
+$$a(x,x')=\min\{1,\frac{f_X(x')T(x',x)}{f_X(x)T(x,x')}\} $$
+
+Sea $x^{(0)}\in E$, con $f_X(x^{(0)})>0$. Consideramos la sucesión $\{x^{(n)}\}_{n\in\mathds{N}_0}$ generada por el algoritmo \hyperref[metMetro]{(1)} iterando infinitas veces. Entonces $\{x^{(n)}\}_{n\in\mathds{N}_0}$ es un proceso de Markov homogéneo y $P_X$ es una distribución estacionaria. Supongamos que$\{x^{(n)}\}_{n\in\mathds{N}_0}$ es $P_X$-irreducible y aperiódico. Entonces se verifica que:
+$$\forall B\in\mathscr{B}_E \text{, } \lim_{n\to +\infty}P_n(\cdot,B) = P_X(B)\text{, } c.s.\text{-}P_X$$
+En concreto,
+$$\forall B\in\mathscr{B}_E \text{, } \lim_{n\to +\infty}P_n(x^{(0)},B) = P_X(B)$$
+\end{teorema}
+
+\begin{proof}
+Claramente $\{x^{(n)}\}_{n\in\mathds{N}_0}$ es un proceso de Markov, ya que cada elemento de la sucesión es generado a partir del elemento anterior. También es fácil ver que es homogéneo, pues dado $x^{(i)}$, $i\in\mathds{N}_0$, el elemento $x^{(i+1)}$ se genera según la función de densidad $T(x^{(i)}, \cdot)$, que no tiene ninguna dependencia temporal. Por tanto vamos a calcular la función de densidad de transición en un paso. Dada una muestra $x\in E$, generada según la función de densidad $T(x^{(i)},\cdot)$, entonces $a(x^{(i)}, x)$ representa la probabilidad de que $x$ sea aceptada, y, por tanto, $x^{(i+1)} = x$. Teniendo esto en cuenta vemos que:
+$$\forall B\in\mathscr{B}_E, x\in E/B \text{, }P(x^{(i+1)}\in B/ x^{(i)}=x) = \int_B T(x,y)a(x,y) dy$$
+\begin{align*}
+\forall B\in\mathscr{B}_E, x\in B\text{, }P(x^{(i+1)}\in B/ x^{(i)}=x) = &\int_B T(x,y)a(x,y) dy +\\
+&+ (1-\int_E T(x,s)a(x,s) ds)
+\end{align*}
+
+donde $h(x) := (1-\int_E T(x,s)a(x,s) ds)$ representa la probabilidad de rechazar la muestra generada según $T(x, \cdot)$. Vemos por tanto que podemos expresar la función de densidad de transición utilizando la función delta de Dirac definida en (\ref{deltaDirac}):
+$$ f(y/x) = T(x,y)a(x,y) + \delta_n(y-x) h(y)\text{, }\forall x,y\in E$$
+
+Vamos a demostrar ahora que $f_X$ satisface la propiedad de balance detallado. Sean $x,y\in E$, $x\neq y$:
+\begin{align*}
+f_X(x)f(y/x) &= f_X(x)T(x,y)a(x,y) = f_X(x)T(x,y)\min\{1,\frac{f_X(y)T(y,x)}{f_X(x)T(x,y)}\}\\
+&=\min\{f_X(x)T(x,y),f_X(x)T(x,y)\frac{f_X(y)T(y,x)}{f_X(x)T(x,y)}\} \\
+&= \min\{f_X(x)T(x,y),f_X(y)T(y,x)\} = f_X(y)f(x/y)
+\end{align*}
+
+Por tanto $f_X$ es una función de densidad estacionaria, o lo que es lo mismo, $P_X$ es una distribución estacionaria. Concluimos el resultado usando la hipótesis de que $\{x^{(n)}\}_{n\in\mathds{N}_0}$  es $P_X$-irreducible y aperiódico, aplicando el teorema (\ref{teoMetro}).
+
+\end{proof}
+
+El teorema anterior nos asegura que, para un número de muestras suficientemente alto, las muestras generadas mediante el método de metrópolis seguirán la distribución que se quiere muestrear. Como vemos el punto inicial puede ser generado siguiendo cualquier distribución de probabilidad, la única restricción es que debe cumplir que $f_X(x^{(0)})>0$. Intuitivamente, la hipótesis de que $\{x^{(n)}\}_{n\in\mathds{N}_0}$ sea $P_X$-irreducible se obtiene eligiendo una función $T$ que nos permita llegar a cualquier conjunto $B\subseteq E$, con $P_X(B)>0$, en un número finito de iteraciones del algoritmo, lo cual es una característica deseable ya que nos permite muestrear el espacio de estados completo. La aperiodicidad, por otro lado, es una propiedad que casi siempre se cumple y que es sencilla de comprobar. El método de Metropolis corresponde a una clase de algoritmos llamados \emph{Markov chain Monte Carlo}, o \emph{MCMC}.
+
+Un problema asociado a este método es que a diferencia de los métodos anteriores, las muestras generadas no son independientes, ya que el algoritmo genera la muestra $x^{(i+1)}$ a partir de la muestra $x^{(i)}$. Es por ello que es posible que tengamos que generar muchas más muestras de las que vamos a utilizar con el objetivo de que las muestras sean independientes entre sí. El número de muestras que desecharemos antes de aceptar una se elegirá en función de la correlación que haya entre muestras adyacentes.
+
+Otro problema derivado de este método es que aunque el proceso de Markov acaba convergiendo a la distribución buscada, las primeras muestras pueden no ser representativas de dicha distribución, y esto se produce debido a que la muestra inicial está tomada respecto de una distribución diferente. Es por esto que suele ser necesario un periodo inicial en el que todas las muestras se desechan.
+
+Una ventaja de este método es que su ratio de convergencia y su tiempo de ejecución no se ven demasiado perjudicados al aumentar la dimensionalidad del espacio muestreado. Esto hace que a veces este método, así como otros algoritmos de tipo MCMC, sean la única solución viable para aproximar una distribución en varias dimensiones. Dentro de este método es muy importante la elección de la función $T$, ya que de ello dependerá la velocidad de convergencia del proceso de Markov hacia la distribución deseada.
+
+En cuanto a su aplicación en renderización, el método de Metropolis puede usarse para mejorar la eficiencia de los algoritmos bidireccionales, que son algoritmos que aprovechan el carácter reversible de la óptica geométrica para trazar caminos entre dos puntos, simulando el camino de la luz partiendo de ambos puntos y juntando los dos caminos generados en un punto intermedio de la escena.
+
+\subsection{Transformación entre distribuciones}
+
+Habrá ocasiones en que nos resulte costoso generar muestras de un vector aleatorio $Y$, pero exista una función $g$ biyectiva y diferenciable tal que $Y=g(X)$, con $X$ fácilmente simulable. Entonces podremos generar muestras que sigan la distribución de $Y$ aplicando un cambio de variable, de la manera en que se especifica en la siguiente proposición.
+
+\begin{proposicion}
+Sea $(\Gamma,\mathcal{A}, P)$ un espacio probabilístico, y sean $X$, $Y$ dos vectores aleatorios continuos definido sobre $(\Gamma,\mathcal{A}, P)$, con valores en $E_X$, $E_Y$ respectivamente. Sea $f_X$ la función de densidad de $X$, y sea $g$ una función biyectiva y diferenciable tal que $Y=g(X)$. Entonces la función de densidad de $Y$ cumple que:
+$$f_Y(y) = f_x(g^{-1}(y))|J_g(y)|\text{, }\forall y\in E_Y$$
+
+donde $|J_g(y)|$ denota al valor absoluto del determinante del jacobiano de $g$ en $y$.
+\end{proposicion}
+
+Detallaremos ahora una transformación que tiene gran importancia en renderización. Recordemos que notamos por $\pi$ a la proyección sobre la esfera unidad $\mathds{S}^2$. En el contexto de la proposición \ref{ToArea}, consideremos un vector aleatorio $\omega$ con valores en la porción de la esfera $\pi(C)$. Claramente, en dicho contexto, la función $\pi$ restringida a $C$, $\pi|_C$, es una biyección entre la superficie $C$ y la porción de la esfera $\pi(C)$. Supongamos que conocemos la función de densidad de $\omega$, $f_{\omega}$, y que queremos tomar muestras en $C$ siguiendo la distribución de $X:=(\pi|_C)^{-1}(\omega)$. Entonces tenemos que, dado $A\subseteq C$:
+\begin{align*}
+P(\omega\in \pi(A)) &= \int_{\pi(A)}f_{\omega}(s)\text{ }d\mu(s) = \int _A f_{\omega}(\pi(x)) \frac{x}{\|x\|^3} \text{ }dS \\
+&= \int _A f_{\omega}(\pi(x)) \frac{x\cdot n(x)}{\|x\|^3} \text{ }dS = \int_A f_{\omega}(\pi(x)) \frac{cos(\theta(x))}{\|x\|^2} \text{ }dS\\
+&= P(X\in A)
+\end{align*}
+
+donde $n(x)$ es la normal a la superficie en el punto $x$, y $\theta(x)$ es el ángulo formado por la normal a la superficie en $x$ y el vector $x$. Por tanto concluimos que $f_X(x) = f_{\omega}(\pi(x))\frac{cos(\theta(x))}{\|x\|^2}$. A veces simplificaremos la notación escribiendo:
+\begin{equation}\label{cambioArea}
+f_X(x) = f_{\omega}(\pi(x))\frac{cos\theta}{r^2}
+\end{equation}
+
+\section{Métodos para reducir la varianza}
+En esta sección presentaremos tres métodos que nos permiten reducir la varianza del estimador de Monte Carlo.
+
+\subsection{Muestreo de importancia}
+
+El muestreo de importancia se basa en una idea bastante sencilla. Sea $X$ un vector aleatorio, supongamos que queremos aproximar $E[g(X)]$ para una función medible $g$. Supongamos que $X$ es continuo y tiene función de densidad $f_X$. Sea $Y$ otro vector aleatorio con función de densidad $f_Y$ estrictamente positiva. Entonces vemos que:
+$$E[g(X)]=\int g(x)f_X(x)dx = \int \frac{g(x)}{f_Y(x)}f_Y(x)f_X(x)dx = E[\frac{g(Y)}{f_Y(Y)}f_X(Y)]$$
+
+Consideramos la variable aleatoria $Z:=\frac{g(Y)}{f_Y(Y)}f_Y(Y)$. Entonces:
+$$\Var(Z) = \int \frac{g(x)^2}{f_Y(x)}f_X(x)^2dx - (E[g(X)])^2$$
+
+El muestreo de importancia consiste en buscar una función de densidad $f_Y$ muestreable tal que la varianza de $Z$ sea considerablemente más pequeña que la de $g(X)$. En ese caso, será preferible muestrear la variable aleatoria $Y$ y aproximar $E[Z]$ con el estimador Monte Carlo, ya que, como vimos, la varianza del estimador Monte Carlo es proporcional a la varianza de la función cuya esperanza aproxima. Al reducir la varianza del estimador, se requerirán menos simulaciones para acercarse al valor buscado.
+
+Como ya se mencionó al final del capítulo anterior, habrá situaciones en las que en vez de la esperanza de una función queramos calcular su integral. Supongamos que queremos calcular la integral de una función $h$, y sea $X$ una variable aleatoria tal que $f_X(x)>0$ para todo $x$ tal que $|h(x)|>0$. Tomando $g = \frac{h}{f_X}$, podemos aproximar la integral de $h$ aplicando el estimador Monte Carlo a la función $g$. El muestreo de importancia en este caso se reduce a elegir la variable $X$ de tal manera que la varianza de $g(X)$ sea baja, y esto se consigue mediante funciones de densidad que asignen mayores probabilidades a regiones donde $h$ tome valores altos.
+
+\subsection{Estratificación o muestreo estratificado}
+
+El muestreo estratificado consiste en separar el dominio de integración en regiones disjuntas, llamadas estratos, y tomar un número fijo de muestras en cada estrato. Supongamos que queremos aproximar la esperanza de una función $f$ en un dominio de integración $\Lambda$. Consideremos $N$ regiones disjuntas, $\Lambda_1,\ldots,\Lambda_N\subset \Lambda$, cumpliendo que:
+$$\bigcup_{i=1}^N\Lambda_i = \Lambda$$
+
+Consideramos $n_1,\ldots,n_N \in\mathds{N}_0$ el número de muestras que se tomarán en cada estrato, y $p_1,\ldots,p_N$ las funciones de densidad definidas sobre cada estrato. Esto lleva a un estimador de la forma:
+$$F = \sum_{i=1}^N v_i\frac{1}{n_i}\sum_{j=1}^{n_i}f(X_{i,j})$$
+
+donde $v_i$ es el volumen fraccional del estrato $i$ ($\sum v_i=1$, $v_i\in (0,1]$), y $X_{i,j}$ es la $j$-ésima muestra independiente tomada siguiendo la función de densidad $p_i$. Mediante una serie de derivaciones sencillas, suponiendo que $n_i = v_i M$ donde $M$ es el número total de muestras, puede verse que:
+$$\Var(F) = \frac{1}{N}\sum v_i\sigma_i^2 $$
+
+donde $\sigma_i^2$ es la varianza de $f$ en $\Lambda_i$. La varianza del estimador tomando $M$ muestras sin estratificación cumple que:
+$$\Var(F_M) = \frac{1}{M}[\sum v_i\sigma_i^2 + \sum v_i(\mu_i-I)^2]$$
+
+donde $\mu_i$ es la esperanza de $f$ en $\Lambda_i$, e $I$ es la esperanza de $f$ en el dominio completo. Dado que la suma de la derecha es no negativa, deducimos que la estratificación nunca incrementa la varianza. De hecho la suma de la derecha solo valdrá $0$ cuando la función $f$ tenga la misma media en todos los estratos. La reducción en la varianza que produce este método viene del hecho de que impide que todas las muestras se acumulen en una región y permite muestrear el espacio de estados completo.
+
+En los ray tracers la mayoría de distribuciones se simulan partiendo de una o varias muestras siguiendo la distribución uniforme en $[0,1]^2$, por lo que suele usarse estratificación para generar dichas muestras uniformes.
+
+\subsection{Muestreo de importancia múltiple}
+
+El muestreo de importancia múltiple se puede ver como una extensión del muestreo estratificado en la que no es necesario que los estratos sean disjuntos. Este método consiste en tomar muestras de diferentes distribuciones y combinarlos de manera que nos quede un estimador insesgado. Consideramos un conjunto $p_1,\ldots,p_N$ de funciones de densidad, un conjunto $w_1,\ldots,w_N$ de pesos y un conjunto $n_1,\ldots,n_N$ de enteros. El estimador multi-muestra de la integral de $f$ viene dado por:
+\begin{equation}\label{MIS}
+F=\sum_{i=1}^N\frac{1}{n_i}\sum_{j=1}^{n_i}w_i(X_{i,j})\frac{f(X_{i,j})}{p_i(X_{i,j})} 
+\end{equation}
+
+donde $X_{i,j}$ es la $j$-ésima muestra independiente tomada siguiendo la función de densidad $p_i$. Enunciemos una proposición que nos indica las características que deben cumplir los pesos para que el estimador sea insesgado.
+
+\begin{proposicion}
+Sea $F$ el estimador definido en \ref{MIS}. Supongamos que las funciones $w_i$ cumplen las siguientes condiciones:
+\begin{itemize}
+\item $\sum_{i=1}^nw_i(x)=1$ para todo $x$ tal que $f(x)\neq 0$
+\item $w_i(x) = 0$ para todo $x$ tal que $p_i(x)=0$.
+\end{itemize}
+
+Entonces se cumple que:
+$$E[F] = \int f(x) dx $$
+
+\end{proposicion}
+\begin{proof}
+
+En efecto:
+$$E[F]=\sum_{i=1}^N\frac{1}{n_i}\sum_{j=1}^{n_i}\int w_i(x)\frac{f(x)}{p_i(x)}p_i(x)dx = \int \sum_{i=1}^{N} w_i(x) f(x)dx = \int f(x)dx$$
+
+\end{proof}
+
+Este método es especialmente útil cuando el integrando que se quiere aproximar está compuesto por el producto de dos funciones. En ese caso se pueden utilizar dos métodos de muestreo diferentes, haciendo que cada uno se centre en muestrear cada una de las funciones. Es clara la importancia de este método en renderización, ya que en la ecuación de renderización habrá direcciones en las que la radiancia sea alta y la función BSDF no y, por el contrario, habrá direcciones en las que la función BSDF sea alta y  la radiancia no. El muestreo de importancia múltiple nos permite combinar el muestreo de la radiancia y de la función de dispersión para así reducir la varianza.
