@@ -16,7 +16,7 @@ $$E[\frac{g_P(\omega)^2}{f_{\omega}(\omega)^2}] = \int \frac{g_P(\omega)^2}{f_{\
 
 donde $A_F$ es el área de la fuente de luz y $f_{\omega}$ es la función de densidad asociada al método de muestreo uniforme respecto al área. Recordando la discusión en \ref{MI}, cuando $\|t(P,\omega)-P\|$ sea cercano a $0$, o lo que es lo mismo, cuando la fuente de luz esté muy cerca de $P$, $E[\frac{g_P(\omega)^2}{f_{\omega}(\omega)^2}]$ alcanzará valores altos, y por tanto la varianza del estimador Monte Carlo de la función $\frac{g_P}{f_{\omega}}$ será muy alta. Que la varianza sea alta implicará que necesitaremos más muestras por píxel para acercarnos al valor real, y esto a su vez incrementará el tiempo de ejecución necesario para generar la imagen final. 
 
-En este capítulo presentaremos e implementaremos una serie de algoritmos de muestreo de fuentes de luz, alternativos al muestreo uniforme respecto al área, que pretenden reducir la varianza del estimador de Monte Carlo. Los algoritmos serán implementados en el renderizador fotorrealista de código libre asociado descrito en el libro (), que es accesible a través de \href{https://github.com/mmp/pbrt-v3}{este} enlace. 
+En este capítulo presentaremos e implementaremos una serie de algoritmos de muestreo de fuentes de luz, alternativos al muestreo uniforme respecto al área, que pretenden reducir la varianza del estimador de Monte Carlo. Los algoritmos serán implementados en el renderizador fotorrealista de código libre descrito en el libro \cite{Pharr2016}, que es accesible a través de \cite{pbrtCode}.
 
 \section{Muestreo uniforme de rectángulos esféricos}
 
@@ -32,7 +32,7 @@ $$\mu(\pi_P(F))A(U) = \mu(M(U)) = \int_{M(U)}d\omega = \int_{U}|det(J_M(x,y))| d
 y dado que la igualdad anterior se da para todo $U\subseteq [0,1]^2$, deducimos que el mapa $M$ preserva el área si y solo si $|det(J_M(x,y))| = \mu(\pi_P(F))$ para todo $(x,y)\in[0,1]^2$. En vista de esta propiedad, si $V$ es un vector aleatorio con distribución uniforme en $[0,1]^2$, entonces la función de densidad de $M(V)$ cumple que:
 $$f_{M(V)}(M(v)) = \frac{f_V(v)}{|det(J_M(v))|}\Rightarrow f_{M(V)}(M(v)) =\frac{1}{\mu(\pi_P(F))} \text{, }\forall v\in [0,1]^2$$
 
-Concluimos que basta aplicar el mapa $M$ a una muestra siguiendo la distribución uniforme en $[0,1]^2$ para obtener una muestra siguiendo la distribución uniforme en $\pi_P(F)$. Pasamos por tanto a describir el mapa $M$.\\
+Concluimos que basta aplicar el mapa $M$ a una muestra siguiendo la distribución uniforme en $[0,1]^2$ para obtener una muestra siguiendo la distribución uniforme en $\pi_P(F)$.  Una importante característica común a todos los algoritmos aquí presentados es que están basados en parametrizaciones que parten de $[0,1]^2$ y preservan el área, por lo que si las muestras iniciales en $[0,1]^2$ están generadas utilizando estratificación, esta estratificación se trasladará a la región muestreada, reduciendo así la varianza de los estimadores. Pasamos por tanto a describir el mapa $M$.\\
 
 \begin{figure}[h]
   \lineskip=-\fboxrule
@@ -369,19 +369,23 @@ Entonces se cumple que, integrando la expresión anterior:
 con $s'=\min\{y_l,s\}$ y con $I(u,w) = \frac{1}{2}(uw\sqrt{1-u^2} + \arcsin(u))$. Por último tomamos $v=(v_1,v_2)\in[0,1]^2$, y definimos:
 \[ y_1 = 
    \begin{cases} 
-      y^*: A_p(y^*)-(1-2v_1)A_p(a_y)=0,  & \text{si $v_1<0.5$} \\
+      -y^*: A_p(y^*)-(1-2v_1)A_p(a_y)=0,  & \text{si $v_1<0.5$} \\
       y^*:  A_p(y^*)-(2v_1-1)A_p(a_y)=0,  & \text{si $v_1\geq 0.5$}
    \end{cases}
 \]
 
 $$x_1 = x_{min}(y_1) + v_2 (x_{max}(y_1) - x_{min}(y_1))$$
 
-Para calcular el valor de $y_1$, una vez más utilizamos el método de Newton-Raphson. Por último la dirección buscada es:
+Para calcular el valor de $y_1$, utilizamos el método de Newton-Raphson. Por último la dirección buscada es:
 $$M_s(v) = x_1\cdot x + y_1\cdot y + \sqrt{1-x_1^2-y_1^2} \cdot z.$$
 
 $M_s$ preserva el área por como la hemos construido.
 
 \subsection{Construcción de la parametrización $M_t$}
+Fijamos $v=(v_1,v_2)\in [0,1]^2$. Como en el caso anterior, por simetría, sólo consideramos la parte con $y$ positiva del casquete esférico proyectado. En vista de la figura 5.9, consideramos una región delimitada por una línea radial, tal que dicha región preserve el área respecto a la primera variable de $v$. Dado un ángulo $\phi\in [0,\pi]$, el área de la región asociada al radio cuyo ángulo con el eje $x$ es $\phi$ viene dada por:
+$$A_r(\phi) = \int_0^{\phi}\int_{r_{\min}(x)}^{r_{\max}(x)} r \text{ }dr dx = \frac{1}{2}\int_0^{\phi}(r_{\min}^2(x)-r_{\max}^2(x))\text{ } dx$$
+
+donde se ha usado que se trata una integral en coordenadas polares.
 
 \begin{figure}[h]
   \lineskip=-\fboxrule
@@ -394,6 +398,51 @@ $M_s$ preserva el área por como la hemos construido.
     \caption{Descripción del mapa $M_t$. Imagen extraída de \cite{Urena2018}}
   \end{minipage}}
 \end{figure}
+
+ Al igual que en el mapa $M_s$, distinguimos tres casos, el caso $1$, donde muestreamos solo una elipse $Q$, el caso $2$, donde muestreamos una elipse y una luna, y el caso $3$, donde solo muestreamos la luna $L$. Entonces definimos $r_{max}$ y $r_{min}$ como:
+\[ r_{min}(\phi) =
+   \begin{cases}
+      0, & \text{en los casos 1 y 2}, \\
+      \frac{a_x}{\sqrt{1-\cos^2\beta\sin^2\phi}}, & \text{en el caso 3}
+   \end{cases}
+  \]
+
+\[ r_{max}(\phi) =
+   \begin{cases}
+      \frac{a_x}{\sqrt{1-\cos^2\beta\sin^2\phi}}, & \text{si }\alpha\leq\beta \text{ o si } \phi_l\leq\phi,\\
+      \sqrt{1-x_e^2\sin^2\phi}-x_e\cos\phi, & \text{si } \beta< \alpha \text{ y } \phi < \phi_l.
+   \end{cases}
+  \]
+
+donde $\phi_l=\arctan(\frac{y_l}{x_l-x_e})$. Integrando la expresión anterior obtenemos:
+\[ A_r(\phi) =
+   \begin{cases}
+      \frac{1}{2}a_xa_y\arctan(\frac{a_x}{a_y}\tan(\phi)), & \text{caso 1}, \\
+      \frac{1}{2}a_xa_y[\arctan(\frac{a_x}{a_y}\tan(\phi)) - \arctan(\frac{a_x}{a_y}\tan(\phi'))] + A_C(\phi')  , & \text{caso 2}, \\
+       A_C(\phi') - \frac{1}{2}a_xa_y\arctan(\frac{a_x}{a_y}\tan(\phi')), & \text{caso 3} 
+   \end{cases}
+  \]
+
+donde $\phi' = \min(\phi, \phi_l)$ y:
+$$A_C(\phi') = I(\sin(\phi'),x_e^2)-I(x_e\sin(\phi'),1)$$
+
+con $I$ la función definida en el apartado anterior. Por último definimos:
+\[ \phi_1 = 
+   \begin{cases} 
+      -\phi^*: A_r(\phi^*)-(1-2v_1)A_p(\pi)=0,  & \text{si $v_1<0.5$} \\
+      \phi^*:  A_r(\phi^*)-(2v_1-1)A_p(\pi)=0,  & \text{si $v_1\geq 0.5$}
+   \end{cases}
+\]
+
+$$r_1 = \sqrt{r_{min}^2(\phi_1) + v_2 (r_{max}^2(\phi_1) - r_{min}^2(\phi_1))}$$
+
+Para calcular el valor de $\phi_1$, utilizamos el método de Newton-Raphson. $r_1$ está definida de esta forma para que el mapa preserve el área. Por último, tomando $x_1 = (x_e + r_1\cos(\phi_1))$, $y_1 = (r_1\sin(\phi_1))$, la dirección buscada es:
+$$M_t(v) = x_1\cdot x + y_1\cdot y + \sqrt{1-x_1^2-y_1^2} \cdot z.$$
+
+
+Sin embargo, en el caso $1$ en que solo tenemos una elipse, el muestreo se puede optimizar tomando $x_1=x_e + a_x\sqrt{v_1}\cos(2\pi v_2)$, $y_1= a_y\sqrt{v_1}\sin(2\pi v_2)$, y definiendo el mapa $M_t$ como:
+$$M_t(v) = x_1\cdot x + y_1\cdot y + \sqrt{1-x_1^2-y_1^2} \cdot z.$$
+
 
 \subsection{Resultados obtenidos}
 
