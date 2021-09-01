@@ -1,0 +1,315 @@
+@book{Pharr2016,
+author = {Pharr, Matt and Jakob, Wenzel and Humphreys, Greg},
+title = {Physically Based Rendering: From Theory to Implementation},
+year = {2016},
+isbn = {0128006455},
+publisher = {Morgan Kaufmann Publishers Inc.},
+address = {San Francisco, CA, USA},
+edition = {3rd},
+abstract = {Physically Based Rendering: From Theory to Implementation, Third Edition, describes
+both the mathematical theory behind a modern photorealistic rendering system and its
+practical implementation. Through a method known as 'literate programming', the authors
+combine human-readable documentation and source code into a single reference that
+is specifically designed to aid comprehension. The result is a stunning achievement
+in graphics education. Through the ideas and software in this book, users will learn
+to design and employ a fully-featured rendering system for creating stunning imagery.
+This completely updated and revised edition includes new coverage on ray-tracing hair
+and curves primitives, numerical precision issues with ray tracing, LBVHs, realistic
+camera models, the measurement equation, and much more. It is a must-have, full color
+resource on physically-based rendering. Presents up-to-date revisions of the seminal
+reference on rendering, including new sections on bidirectional path tracing, numerical
+robustness issues in ray tracing, realistic camera models, and subsurface scattering
+Provides the source code fora complete rendering systemallowing readers to get up
+and running fast Includes a unique indexing feature, literate programming, that lists
+the locations of each function, variable, and method on the page where they are first
+describedServes as an essential resource on physically-based rendering}
+}
+
+@Inbook{Mackay1998,
+author="Mackay, D. J. C.",
+title="Introduction to Monte Carlo Methods",
+bookTitle="Learning in Graphical Models",
+year="1998",
+publisher="Springer Netherlands",
+address="Dordrecht",
+pages="175--204",
+abstract="This chapter describes a sequence of Monte Carlo methods: importance sampling, rejection sampling, the Metropolis method, and Gibbs sampling. For each method, we discuss whether the method is expected to be useful for high---dimensional problems such as arise in inference with graphical models. After the methods have been described, the terminology of Markov chain Monte Carlo methods is presented. The chapter concludes with a discussion of advanced methods, including methods for reducing random walk behaviour.",
+isbn="978-94-011-5014-9",
+doi="10.1007/978-94-011-5014-9_7",
+url="https://doi.org/10.1007/978-94-011-5014-9_7"
+}
+
+@article{Roberts2004,
+  title={General state space Markov chains and MCMC algorithms},
+  author={G. Roberts and J. Rosenthal},
+  journal={Probability Surveys},
+  year={2004},
+  volume={1},
+  pages={20-71}
+}
+
+@phdthesis{Veach97,
+author = {Veach, Eric},
+advisor = {Guibas, Leonidas J.},
+title = {Robust Monte Carlo Methods for Light Transport Simulation},
+year = {1998},
+isbn = {0591907801},
+publisher = {Stanford University},
+school = {Stanford University},
+address = {Stanford, CA, USA},
+abstract = {Light transport algorithms generate realistic images by simulating the emission and
+scattering of light in an artificial environment. Applications include lighting design,
+architecture, and computer animation, while related engineering disciplines include
+neutron transport and radiative heat transfer. The main challenge with these algorithms
+is the high complexity of the geometric, scattering, and illumination models used.
+In this dissertation, we develop new Monte Carlo techniques that greatly extend the
+range of input models for which light transport simulations are practical. We start
+by developing a rigorous theoretical basis for bidirectional light transport algorithms
+(those that combine direct and adjoint techniques). We propose a new formulation based
+on linear operators, such that for any physically valid input scene, the transport
+operators are symmetric. We also show how light transport can be formulated as an
+integral over a space of paths. This framework allows new sampling and integration
+techniques to be applied, such as the Metropolis sampling method.Our statistical contributions
+include multiple importance sampling, a new variance reduction technique that can
+greatly increase the robustness of Monte Carlo integration. It uses more than one
+sampling technique to evaluate an integral, and combines these samples in a way that
+is provably close to optimal.Finally, we propose new Monte Carlo light transport algorithms.
+Bidirectional path tracing uses a family of different path sampling techniques that
+generate some path vertices starting from a light source, and some starting from a
+sensor. We show that when these techniques are combined using multiple importance
+sampling, a large range of difficult lighting effects can be handled efficiently.The
+second algorithm we describe is Metropolis light transport, inspired by the Metropolis
+sampling method from computational physics. Paths are generated by following a random
+walk through path space, such that the probability density of visiting each path is
+proportional the contribution it makes to the ideal image. The resulting algorithm
+is unbiased, handles arbitrary geometry and materials, and can be orders of magnitude
+more efficient than previous unbiased approaches for difficult lighting problems.
+To our knowledge, this is the first application of the Metropolis method to transport
+problems of any kind.},
+note = {AAI9837162}
+}
+
+@book{Courant89,
+  added-at = {2016-04-30T14:07:56.000+0200},
+  address = {New York},
+  author = {Courant, Richard and Hilbert, David},
+  biburl = {https://www.bibsonomy.org/bibtex/2ca5b8c59f4d5e3bbaff61b9cf04e7c2f/ytyoun},
+  interhash = {49566a88b146ad81faa6a0a42a95c583},
+  intrahash = {ca5b8c59f4d5e3bbaff61b9cf04e7c2f},
+  isbn = {0585294283 9780585294285 9783527617210 3527617213},
+  keywords = {math physics textbook},
+  publisher = {Wiley},
+  refid = {45734095},
+  timestamp = {2016-04-30T14:07:56.000+0200},
+  title = {Methods of Mathematical Physics},
+  volume = 1,
+  year = 1989
+}
+
+@article{Martinon96,
+author = {Martinon, Antonio and Bermudez, Teresa},
+year = {1996},
+month = {06},
+pages = {},
+title = {On Neumann Operators},
+volume = {200},
+journal = {Extracta mathematicae, ISSN 0213-8743, Vol. 7, Nº 2-3, 1992, pags. 107-109},
+doi = {10.1006/jmaa.1996.0233}
+}
+
+@article{Kajiya86,
+author = {Kajiya, James T.},
+title = {The Rendering Equation},
+year = {1986},
+issue_date = {Aug. 1986},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {20},
+number = {4},
+issn = {0097-8930},
+url = {https://doi.org/10.1145/15886.15902},
+doi = {10.1145/15886.15902},
+abstract = {We present an integral equation which generalizes a variety of known rendering algorithms.
+In the course of discussing a monte carlo solution we also present a new form of variance
+reduction, called Hierarchical sampling and give a number of elaborations shows that
+it may be an efficient new technique for a wide variety of monte carlo procedures.
+The resulting rendering algorithm extends the range of optical phenomena which can
+be effectively simulated.},
+journal = {SIGGRAPH Comput. Graph.},
+month = aug,
+pages = {143–150},
+numpages = {8}
+}
+
+@book{Madras2002,
+  title={Lectures on Monte Carlo Methods},
+  author={Madras, N.N. and Fields Institute for Research in Mathematical Sciences and American Mathematical Society},
+  isbn={9780821829783},
+  lccn={2001053551},
+  series={Fields Institute for Research in Mathematical Sciences Toronto: Fields Institute monographs},
+  url={https://books.google.es/books?id=3-6S26oSt6kC},
+  year={2002},
+  publisher={American Mathematical Society}
+}
+
+@book{Williams1991, place={Cambridge}, title={Probability with Martingales}, DOI={10.1017/CBO9780511813658}, publisher={Cambridge University Press}, author={Williams, David}, year={1991}}
+
+@article{LaLonde13,
+author = {LaLonde, Scott M.},
+title = {The Martingale Stopping Theorem},
+year = {2013},
+issue_date = {Feb. 2013},
+url = {https://math.dartmouth.edu/~pw/math100w13/lalonde.pdf}
+}
+
+@book{Graham2013,
+author = {Graham, Carl and Talay, Denis},
+year = {2013},
+month = {01},
+pages = {},
+title = {Stochastic Simulation and Monte Carlo Methods. Mathematical Foundations of Stochastic Simulation.},
+volume = {68},
+isbn = {978-3-642-39362-4},
+doi = {10.1007/978-3-642-39363-1}
+}
+
+@inproceedings{Arvo95,
+author = {Arvo, James},
+title = {Stratified Sampling of Spherical Triangles},
+year = {1995},
+isbn = {0897917014},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/218380.218500},
+doi = {10.1145/218380.218500},
+booktitle = {Proceedings of the 22nd Annual Conference on Computer Graphics and Interactive Techniques},
+pages = {437–438},
+numpages = {2},
+keywords = {stratified sampling, spherical triangle, Monte Carlo, solid angle},
+series = {SIGGRAPH '95}
+}
+
+@article{Martins13,
+author = {Martins, Marcela and Acero, Fernando},
+title = {Fredholm, ecuaciones integrales y álgebra lineal},
+year = {2014},
+url = {https://www.palermo.edu/ingenieria/downloads/CyT7/7CyT%2014.pdf}
+}
+
+@inproceedings{Dimov2005,
+author = {Dimov, Ivan and Gurov, Todor and Penzov, Anton},
+year = {2005},
+month = {02},
+pages = {257-265},
+title = {A Monte Carlo Approach for the Cook-Torrance Model},
+volume = {3401},
+isbn = {978-3-540-24937-5},
+journal = {Lecture Notes in Computer Science},
+doi = {10.1007/978-3-540-31852-1_30}
+}
+
+@article{Booth44,
+author = { Rev.   James   Booth   LL.D.   M.R.I.A. },
+title = {IV. On the rectification and quadrature of the spherical ellipse},
+journal = {The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science},
+volume = {25},
+number = {163},
+pages = {18-38},
+year  = {1844},
+publisher = {Taylor & Francis},
+doi = {10.1080/14786444408644925},
+URL = { https://doi.org/10.1080/14786444408644925},
+eprint = { https://doi.org/10.1080/14786444408644925}
+}
+
+@article{Urena2013,
+author = {Ureña, Carlos and Fajardo, Marcos and King, Alan},
+title = {An Area-Preserving Parametrization for Spherical Rectangles},
+journal = {Computer Graphics Forum},
+volume = {32},
+number = {4},
+pages = {59-66},
+keywords = {I.3.7 Computer Graphics: Three-Dimensional Graphics and Realism—Color, shading, shadowing, and texture},
+doi = {https://doi.org/10.1111/cgf.12151},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1111/cgf.12151},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1111/cgf.12151},
+abstract = {Abstract We present an area-preserving parametrization for spherical rectangles which is an analytical function with domain in the unit rectangle [0, 1]2 and range in a region included in the unit-radius sphere. The parametrization preserves areas up to a constant factor and is thus very useful in the context of rendering as it allows to map random sample point sets in [0, 1]2 onto the spherical rectangle. This allows for easily incorporating stratified, quasi-Monte Carlo or other sampling strategies in algorithms that compute scattering from planar rectangular emitters.},
+year = {2013}
+}
+
+@article{Guillen2017,
+    author = {Guill\'{e}n, Ib\'{o}n and Ure\~{n}a, Carlos and King, Alan and Fajardo, Marcos and Georgiev, Iliyan and L\'{o}pez-Moreno, Jorge and Jarabo, Adrian},
+    title = {Area-Preserving Parameterizations for Spherical Ellipses},
+    journal = {Computer Graphics Forum},
+    volume = {36},
+    number = {4},
+    pages = {179--187},
+    month = jul,
+    year = {2017},
+    doi = {10.1111/cgf.13234},
+}
+
+@article{Urena2018,
+    Author = {Carlos Ure\~{n}a and Iliyan Georgiev},
+    Journal = {Computer Graphics Forum (Proceedings of EGSR)},
+    Number = {4},
+    Title = {Stratified Sampling of Projected Spherical Caps},
+    Volume = {37},
+    Year = {2018}
+}
+
+@misc{codigoIntegralEliptica,
+  author = {Burkardt, John},
+  title = {Elliptic Integrals},
+  howpublished = "\url{https://people.sc.fsu.edu/~jburkardt/cpp_src/elliptic_integral/elliptic_integral.html}",
+  note = "[Online]"
+}
+
+@misc{esperanzaCondicionada,
+  author = {Tindel, Samy},
+  title = {Conditional expectation},
+  howpublished = "\url{https://www.math.purdue.edu/~stindel/teaching/ma539/cdt-expectation-2.pdf}",
+  note = "[Online]"
+}
+
+@misc{Fredholm,
+  title = {Integral equations},
+  howpublished = "\url{http://www.et.byu.edu/~vps/ET502WWW/NOTES/CH7m.pdf}",
+  note = "[Online]"
+}
+
+@misc{pbrtCode,
+	author = {Pharr, Matt and Jakob, Wenzel and Humphreys, Greg},
+  title = {pbrt, Version 3},
+  howpublished = "\url{https://github.com/mmp/pbrt-v3}",
+  note = "[Online]"
+}
+
+@misc{Shirley2020RTW1,
+   title = {Ray Tracing in One Weekend},
+   author = {Peter Shirley},
+   year = {2020},
+   month = {December},
+   note = {\small \texttt{https://raytracing.github.io/books/RayTracingInOneWeekend.html}},
+   url = {https://raytracing.github.io/books/RayTracingInOneWeekend.html}
+}
+
+@misc{Shirley2020RTW2,
+   title = {Ray Tracing: The Next Week},
+   author = {Peter Shirley},
+   year = {2020},
+   month = {December},
+   note = {\small \texttt{https://raytracing.github.io/books/RayTracingTheNextWeek.html}},
+   url = {https://raytracing.github.io/books/RayTracingTheNextWeek.html}
+}
+
+@misc{Shirley2020RTW3,
+   title = {Ray Tracing: The Rest of Your Life},
+   author = {Peter Shirley},
+   year = {2020},
+   month = {December},
+   note = {\small \texttt{https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html}},
+   url = {https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html}
+}
+
+

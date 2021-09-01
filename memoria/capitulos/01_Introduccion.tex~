@@ -46,7 +46,6 @@ Para calcular la cantidad de luz que es reflejada desde un punto en una direcci�
 \subsection{Distribución de la dispersión de la luz en superficies}
 
 Llegados a este punto vemos que la forma en que los objetos de la escena reflejan y transmiten la luz que les llega es de gran importancia. Esto depende de las características de la materia que compone el objeto. La función que describe la forma en que los objetos de la escena reflejan la luz que reciben se denomina \emph{función de distribución de reflectancia bidireccional} o \emph{BRDF} (\emph{bidirectional reflectance distribution function}), y la notaremos por:
-
 $$f_r:\mathds{R}^3\times \mathds{S}^2 \times \mathds{S}^2 \rightarrow \mathds{R}^+_0$$
 
 Dónde notamos por $\mathds{S}^2$ a la esfera unidad de $\mathds{R}^3$. De esta manera, sea $p$ un punto en la superficie de un objeto, $\omega _i$ la dirección de un rayo incidente, y $\omega _o$ la dirección de un rayo reflejado, entonces la cantidad de energía reflejada por la superficie del objeto en el punto $p$ desde la dirección $\omega _i$ hacia la dirección $\omega _o$ es $f_r(p,\omega _o, \omega _i)$. Obviamente al tratarse de energía reflejada, si consideramos la esfera cuyo polo norte es la normal en $p$ a la superficie (notada como $n$ en la figura 1.2), si $\omega _i$ se encuentra en el hemisferio inferior de dicha esfera entonces $f_r(p,\omega _o, \omega _i)$ será igual a 0.\\
@@ -86,11 +85,11 @@ Antes de presentar las magnitudes radiométricas centrales en renderización, va
 Como ya sabemos, en una circunferencia de radio unidad, el ángulo en radianes entre dos radios es igual a la longitud de circunferencia comprendida entre ellos (figura 1.3). Conceptualmente, el ángulo sólido se trata de una extensión de los ángulos planos a $\mathds{R}^3$, y mide el tamaño con el que se ve un objeto desde un punto. Podemos entender un objeto como una superficie simple, regular a trozos y orientable.
 
 \begin{definicion}
-  Consideremos un punto $P \in \mathds{R}^3$ y sea $A \subset \mathds{R}^3/\{P\}$ una superficie simple, regular a trozos y orientable. Se denomina ángulo sólido subtendido por $A$ desde $P$ a la región del espacio $\{P + \lambda (V-P) \in \mathds{R}^3 : \lambda \in (0,1], V \in A\}$, y se nota por $\Omega(A)$. 
+  Consideremos un punto $P \in \mathds{R}^3$ y sea $A \subseteq \mathds{R}^3/\{P\}$ una superficie simple, regular a trozos y orientable. Se denomina ángulo sólido subtendido por $A$ desde $P$ a la región del espacio $\{P + \lambda (V-P) \in \mathds{R}^3 : \lambda \in (0,1], V \in A\}$, y se nota por $\Omega(A)$. 
 \end{definicion}
 
 \begin{definicion}
-    Sea $P \in \mathds{R}^3$ y consideremos la esfera unidad con centro $P$, $\mathcal{B}(P,1)$. Sea $\pi :\mathds{R}^3/\{P\}\rightarrow \mathcal{B}(P,1)$ la proyección sobre la esfera $\mathcal{B}(P,1)$, es decir, $\pi(r) = P + \frac{r-P}{\|r-P\|}$. Sea $A \subset \mathds{R}^3/\{P\}$ una superficie simple, regular a trozos y orientable, y tomamos $I = \int _{\pi(A)} dS$. Entonces diremos que el ángulo sólido subtendido por $A$ desde $P$ mide $I$ estereorradianes.
+    Sea $P \in \mathds{R}^3$ y consideremos la esfera unidad con centro $P$, $\mathcal{B}(P,1)$. Sea $\pi :\mathds{R}^3/\{P\}\rightarrow \mathcal{B}(P,1)$ la proyección sobre la esfera $\mathcal{B}(P,1)$, es decir, $\pi(r) = P + \frac{r-P}{\|r-P\|}$. Sea $A \subseteq \mathds{R}^3/\{P\}$ una superficie simple, regular a trozos y orientable, y tomamos $I = \int _{\pi(A)} dS$. Entonces diremos que el ángulo sólido subtendido por $A$ desde $P$ mide $I$ estereorradianes.
 \end{definicion}
 
 \begin{figure}[h]
@@ -120,21 +119,16 @@ Como ya sabemos, en una circunferencia de radio unidad, el ángulo en radianes e
 En la definición anterior hemos usado $dS$ para denotar la integral de superficie. Como vemos el ángulo sólido subtendido por un objeto claramente depende del punto de referencia $P$. Sin embargo, supongamos que queremos medir el ángulo sólido subtendido por un objeto desde un punto $P$. En renderización se trabaja con $\mathds{R}^3$ como espacio afín, por lo que podemos aplicar una traslación del marco de referencia para situar $P$ en el origen de coordenadas. Por tanto, a efectos prácticos siempre podemos suponer que trabajamos en la esfera unidad $\mathds{S}^2$. Vamos a definir ahora la función que mide el ángulo sólido en la esfera unidad:
 
 \begin{definicion}
-  Sea $\mathscr{S}$ la familia de superficies simples contenidas en la esfera unidad $\mathds {S}^2$, definimos la función $\sigma :\mathscr{S} \rightarrow \mathds{R}^+_0$ como:
+  Sea $\mathscr{S}$ la familia de superficies simples contenidas en la esfera unidad $\mathds {S}^2$, definimos la función $\mu :\mathscr{S} \rightarrow \mathds{R}^+_0$ como:
+  $$\mu(C) = \int_C \text{ }dS , \hspace{0.5cm} \forall C\in \mathscr{S}$$
 
-  $$\sigma(C) = \int_C \text{ }dS , \hspace{0.5cm} \forall C\in \mathscr{S}$$
-
-  La función $\sigma$ mide el ángulo sólido subtendido por cada superficie simple de la esfera.
+  La función $\mu$ mide el ángulo sólido subtendido por cada superficie simple de la esfera.
 \end{definicion}
 
-
-
 Vamos ahora a derivar una serie de resultados básicos relacionados con el ángulo sólido que nos serán útiles durante el resto de trabajo. Consideremos la parametrización de la esfera unidad $\Theta:[0,\pi ]\times [0,2\pi ]\rightarrow \mathds{R}^3$, con:
-
 $$\Theta(\theta ,\varphi ) = ( \sin \theta \cos \varphi,  \sin \theta \sin \varphi , \cos \theta),\hspace{0.5cm}  \forall (\theta , \varphi)\in [0,\pi ]\times [0,2\pi ]$$
 
 Derivando parcialmente $\Theta$ y calculando el producto vectorial de sus derivadas parciales vemos que:
-
 $$\Theta _\theta(\theta ,\varphi ) = \frac{\partial \Theta}{\partial \theta}(\theta ,\varphi ) = (\cos\theta\cos\varphi, \cos\theta\sin\varphi, -\sin\theta)$$
 
 $$\Theta _\varphi(\theta ,\varphi ) = \frac{\partial \Theta}{\partial \varphi}(\theta ,\varphi ) = (-\sin\theta\sin\varphi, \sin\theta\cos\varphi, 0)$$
@@ -142,16 +136,18 @@ $$\Theta _\varphi(\theta ,\varphi ) = \frac{\partial \Theta}{\partial \varphi}(\
 $$\Theta _\theta(\theta ,\varphi )\times \Theta _\varphi(\theta ,\varphi ) = (\sin^2\theta\cos\varphi,\sin^2\theta\sin\varphi,\sin\theta\cos\theta)$$
 
 Con lo que concluimos que:
-
-$$\sigma (C) = \int_C \text{ }dS = \iint_{\Theta^{-1}(C)}\|\Theta _\theta(\theta ,\varphi )\times \Theta _\varphi(\theta ,\varphi )\| d\theta d\varphi = \iint_{\Theta^{-1}(C)} \sin\theta d\theta d\varphi \hspace{0.2cm} \forall C \in \mathscr{S}$$
+\begin{align*}
+\mu (C) = \int_C \text{ }dS &= \iint_{\Theta^{-1}(C)}\|\Theta _\theta(\theta ,\varphi )\times \Theta _\varphi(\theta ,\varphi )\| d\theta d\varphi \\
+&= \iint_{\Theta^{-1}(C)} \sin\theta d\theta d\varphi \hspace{1cm} \forall C \in \mathscr{S}
+\end{align*}
 
 De aquí en adelante, por comodidad, notaremos por $\pi$ a la proyección sobre la esfera unidad $\mathds{S}^2$, es decir, $\pi(p)=\frac{p}{\|p\|}$, $\forall p \in \mathds{R}^3/\{(0,0,0)\}$. Pasamos ahora a demostrar la siguiente proposición:
 
-\begin{proposicion}
-  Sea $\sigma$ la medida del ángulo sólido, y sea $C$ una superficie en $\mathds{R}^3/\{(0,0,0)\}$ simple, regular a trozos y orientable, tal que cada recta que empiece en el origen y acabe en un punto de $C$ sólo interseccione con $C$ una vez. Consideramos la función $g:\mathds{R}^3/\{(0,0,0)\} \rightarrow \mathds{R}^3$, con $g(p)=\frac{p}{\|p\|^3}$. Entonces se cumple que:
+\begin{proposicion}\label{angSolido1}
+  Sea $\mu$ la medida del ángulo sólido, y sea $C$ una superficie en $\mathds{R}^3/\{(0,0,0)\}$ simple, regular a trozos y orientable, tal que cada recta que empiece en el origen y acabe en un punto de $C$ sólo interseccione con $C$ una vez. Consideramos la función $g:\mathds{R}^3/\{(0,0,0)\} \rightarrow \mathds{R}^3$, con $g(p)=\frac{p}{\|p\|^3}$. Entonces se cumple que:
 
  \begin{equation}
- \sigma (\pi(C)) = \int _C g \text{ }dS 
+ \mu (\pi(C)) = \int _C g \text{ }dS 
  \end{equation}
  
 \end{proposicion}
@@ -167,7 +163,7 @@ De aquí en adelante, por comodidad, notaremos por $\pi$ a la proyección sobre 
     \caption{The caption text}
   \end{minipage}}
 \end{figure}
-\newpage
+
 
 \begin{proof}
 
@@ -181,7 +177,6 @@ Sea $C_r$ la porción del espacio comprendida entre $C$ y $\pi (C)$, y sea $\par
 \end{align*}
 
 Y, por tanto, aplicando el teorema de divergencia tenemos que:
-
 
 $$\int _{\partial C_r}g\text{ } dS = \iiint _{C_r}\text{div } g \text{ }dx dy dz = 0$$
 
@@ -198,38 +193,37 @@ Sea $\Phi :W\rightarrow \mathds{R}^3$, una parametrización simple y suave de $\
 
 \begin{align*}
   \int _{\pi(C)}g\text{ } dS &= \iint _{W} \frac{<\Phi(u,v) | (\Phi_u(u,v)\times \Phi_v (u,v))>}{\|\Phi(u,v)\|^3}\text{ } du dv =\\
-  &= - \iint _{W} \|\Phi_u(u,v)\times \Phi_v (u,v)\| \|\Phi(u,v)\|^2\text{ } du dv = - \int _{\pi(C)}\text{ } dS
+  &= - \iint _{W} \frac{\|\Phi_u(u,v)\times \Phi_v (u,v)\|}{\|\Phi(u,v)\|^2}\text{ } du dv = - \int _{\pi(C)}\text{ } dS
 \end{align*}
 
 Y por tanto deducimos que:
 
 \begin{align*}
   & 0 = \int _{C}g\text{ } dS + \int _{\pi(C)}g\text{ } dS = \int _{C}g\text{ } dS - \int _{\pi(C)}\text{ } dS \Rightarrow \\
-  & \Rightarrow \int _{C}g\text{ } dS = \int _{\pi(C)}\text{ } dS = \sigma (\pi(C))
+  & \Rightarrow \int _{C}g\text{ } dS = \int _{\pi(C)}\text{ } dS = \mu (\pi(C))
 \end{align*}
 
 Tal y como queríamos.\\
 \end{proof}
 
-Podemos ahora introducir un concepto bastante natural viendo la forma en que hemos definido la función $\sigma$.
+Podemos ahora introducir un concepto bastante natural por la forma en que hemos definido la función $\mu$.
 
 \begin{definicion}
-  Sea $C\subset \mathds{S}^2$ una superficie simple y sea $h: C\rightarrow \mathds{R}$ un campo escalar, $i: C\rightarrow \mathds{R}^3$ un campo vectorial. Entonces la integral respecto al ángulo sólido de las funciones $h$ e $i$ se define como:
+  Sea $C\subseteq \mathds{S}^2$ una superficie simple y sea $h: C\rightarrow \mathds{R}$ un campo escalar, $i: C\rightarrow \mathds{R}^3$ un campo vectorial. Entonces la integral respecto al ángulo sólido de las funciones $h$ e $i$ se define como:
 
-  $$\int _C h\text{ } d\sigma = \int _C h\text{ } dS$$
+  $$\int _C h\text{ } d\mu = \int _C h\text{ } dS$$
 
-   $$\int _C i\text{ } d\sigma = \int _C i\text{ } dS$$
+   $$\int _C i\text{ } d\mu = \int _C i\text{ } dS$$
   
 \end{definicion}
 
-Y por último podemos generalizar la proposición 1.1 de la siguiente manera:
+Y por último podemos generalizar la proposición \ref{angSolido1} de la siguiente manera:
 
-\begin{proposicion}
-  
+\begin{proposicion}\label{ToArea}
 Sea $C$ una superficie en $\mathds{R}^3/\{(0,0,0)\}$ simple, regular a trozos y orientable, tal que cada recta que empiece en el origen y acabe en un punto de $C$ sólo interseccione con $C$ una vez. Sea $h: \mathds{S}^2\rightarrow \mathds{R}^+_0$ un campo escalar no negativo. Consideramos la función $g:\mathds{R}^3/\{(0,0,0)\} \rightarrow \mathds{R}^3$, con $g(p)=\frac{p}{\|p\|^3}$. Entonces se cumple que:
 
- \begin{equation}
-   \int_{\pi(C)} h\text{ }d\sigma = \int _C (h\circ \pi) g \text{ }dS 
+ \begin{equation}\label{transfToArea}
+   \int_{\pi(C)} h\text{ }d\mu = \int _C (h\circ \pi) g \text{ }dS 
  \end{equation}
  
   \end{proposicion}
@@ -243,12 +237,12 @@ Una vez nos hemos familiarizado con el concepto de ángulo sólido, vamos a pres
 \item \textbf{Flujo radiante}: La energía está medida sobre algún periodo de tiempo, y por tanto, bajo la asunción de estado de reposo, es más conveniente trabajar con magnitudes que se midan en un instante de tiempo. El flujo radiante se define como la cantidad total de energía por unidad de tiempo que atraviesa una región. Se mide en vatios (W), y notaremos por $\Phi$ a la función que mide el flujo radiante en una región.
 \item \textbf{Irradiancia y emitancia radiante}: Las dos magnitudes miden el flujo radiante por unidad de superficie, en el caso de la irradiancia se mide el flujo llegando a la superficie, y en el caso de la emitancia radiante se mide el flujo saliendo de la superficie. Se mide en vatios por metro cuadrado (W/m$^{-2}$) y notaremos por $E$ a la función que mide la irradiancia.
 
-\item \textbf{Radiancia incidente y saliente}: Se trata de la magnitud que más utilizaremos. La irradiancia nos da una medida del flujo radiante por unidad de superficie, pero no tiene en cuenta que el flujo tiene una distribución direccional, es decir, la cantidad de flujo que llega a una superficie varía según la dirección del flujo incidente. La radiancia mide el flujo por unidad de superficie proyectada y por unidad de ángulo sólido. Cuando hablamos de superficie proyectada nos referimos a que calculamos el flujo en una superficie hipotética que es perpendicular a la dirección del flujo incidente/saliente. Se mide en vatios por estereorradián por metro cuadrado (W sr$^{-1}$ m$^{-2}$) y notaremos por $L: \mathds{R^3} \times \mathds{S}^2\rightarrow \mathds{R}^+_0$ a la función que mide la radiancia.
+\item \textbf{Radiancia incidente y saliente}: Se trata de la magnitud que más utilizaremos. La irradiancia nos da una medida del flujo radiante por unidad de superficie, pero no tiene en cuenta que el flujo tiene una distribución direccional, es decir, la cantidad de flujo que llega a una superficie varía según la dirección del flujo incidente. La radiancia mide el flujo por unidad de superficie proyectada y por unidad de ángulo sólido. Cuando hablamos de superficie proyectada nos referimos a que calculamos el flujo en una superficie hipotética que es perpendicular a la dirección del flujo incidente/saliente. Se mide en vatios por estereorradián por metro cuadrado (W sr$^{-1}$ m$^{-2}$) y notaremos por $L: \mathds{R}^3 \times \mathds{S}^2\rightarrow \mathds{R}^+_0$ a la función que mide la radiancia.
 
-  Notemos por $\mathcal{H}^2(n)$ al hemisferio superior de la esfera unidad cuyo polo norte es el vector $n$. Si consideramos una superficie con normal $n$ en un punto $p$, la radiancia generalmente no es continua al pasar de una dirección de $\mathcal{H}^2$ a una dirección del hemisferio inferior. Por tanto tiene sentido distinguir entre la función radiancia encima de la superficie y debajo de ella:
+  Notemos por $\mathcal{H}^2(n)$ al hemisferio superior de la esfera unidad cuyo polo norte es el vector $n$. Si consideramos una superficie con normal $n$ en un punto $p$, la radiancia generalmente no es continua en $p$. Por tanto tiene sentido distinguir entre la función radiancia encima de la superficie y debajo de ella:
 
   $$L^+(p,\omega) = \lim_{t\rightarrow 0^+} L(p+tn, \omega)$$
-  $$L^-(p,\omega) = \lim_{t\rightarrow 0^-} L(p+tn, \omega)$$
+  $$L^-(p,\omega) = \lim_{t\rightarrow 0^-} L(p-tn, \omega)$$
 
   Podemos definir por tanto las funciones de radiancia incidente y radiancia saliente como sigue (siempre consideramos que la dirección $\omega$ apunta hacia fuera de la superficie, aunque sea radiancia incidente):
 
@@ -272,28 +266,74 @@ Por como están definidas las magnitudes anteriores tenemos las siguientes relac
 
 \begin{itemize}
 \item La irradiancia en un punto $p\in \mathds{R}^3$ perteneciente a una superficie con normal $n$ en $p$ cumple que:
-  $$ E(p) = \int _{\mathds{S}^2} L_i(p,\omega ) |n \cdot \omega| \text{ } d\sigma(\omega )$$
+  $$ E(p) = \int _{\mathds{S}^2} L_i(p,\omega ) |n \cdot \omega| \text{ } d\mu(\omega )$$
 
   Dónde se multiplica por $| n\cdot \omega |$ debido al hecho de que la radiancia se mide respecto a la superficie proyectada. Notar que $| n\cdot \omega |$ es igual al coseno del ángulo que forman.
 
-\item El flujo en una superficie $A\subset \mathds{R}^3$ cumple que:
+\item El flujo en una superficie $A\subseteq \mathds{R}^3$ cumple que:
   $$\Phi (A)= \int _A E\text{ }dS$$
 \end{itemize}
 
-Por último, la radiancia saliente de una superficie en un punto $p \in \mathds{R}^3$ y en una dirección $\omega _o \in \mathds{S}^2$ se puede calcular como sigue, con $n$ la normal a la superficie en $p$:
-\begin{equation}
-L_s(p,\omega _o) = \int _{\mathds{S}^2}f(p,\omega _o, \omega _i) L_i(p, \omega _i) |n\cdot \omega _i|\text{ }d\sigma (\omega _i)
+Por último, la radiancia saliente de una superficie en un punto $p \in \mathds{R}^3$ y en una dirección $\omega _o \in \mathds{S}^2$ a causa de la iluminación incidente en $p$ se puede calcular como sigue, con $n$ la normal a la superficie en $p$:
+\begin{equation}\label{dispersion}
+L_s(p,\omega _o) = \int _{\mathds{S}^2}f(p,\omega _o, \omega _i) L_i(p, \omega _i) |n\cdot \omega _i|\text{ }d\mu (\omega _i)
 \end{equation}
 
-donde $f$ es la $BDSF$ descrita en el apartado anterior. Esta ecuación se conoce como ecuación de dispersión y es fundamental en renderización, ya que es la ecuación utilizada para estimar el color de los puntos con los que interseccionan los rayos trazados por la cámara, estimando el valor de radiancia saliente en dirección a la cámara en el punto de intersección.
+donde $f$ es la $BDSF$ descrita en el apartado anterior. Esta ecuación se conoce como ecuación de dispersión. Si además la superficie es emisiva en el punto $p$, tenemos que la radiancia saliente total en el punto $p \in \mathds{R}^3$ y en una dirección $\omega _o \in \mathds{S}^2$ se calcula como:
+\begin{equation}\label{renderingEquation}
+L_s(p,\omega _o) = L_e(p,\omega_o) + \int _{\mathds{S}^2}f(p,\omega _o, \omega _i) L_i(p, \omega _i) |n\cdot \omega _i|\text{ }d\mu (\omega _i)
+\end{equation}
+
+dónde la función $L_e(p, \omega_o)$ describe la radiancia emitida en el punto $p$ y en la dirección $\omega_o$. Esta ecuación se denomina \emph{ecuación de renderización}, o \emph{rendering equation}, y es fundamental en ray-tracing, ya que es la ecuación utilizada para estimar el color de los puntos con los que interseccionan los rayos trazados por la cámara, estimando el valor de radiancia saliente en dirección a la cámara en el punto de intersección. La complejidad de la integral dependerá de la escena que estemos renderizando, y como podemos intuir no tiene una solución analítica. En el capítulo 3 abordaremos diferentes formas de aproximar esta ecuación.
 
 Hay que destacar que el algoritmo de ray-tracing tiene una naturaleza recursiva, ya que con el objetivo de estimar el color de un punto, se trazarán rayos desde ese punto en direcciones dónde el valor de radiancia incidente o de BDSF sea grande. Dicho rayo puede volver a interseccionar con otro componente de la escena, del cuál tendremos que estimar a su vez la radiancia saliente en dirección al punto inicial.
 
 \subsection{Propagación de los rayos}
 
-En todo lo descrito con anterioridad hemos supuesto que 
+En todo lo descrito con anterioridad hemos supuesto que los rayos se propagan por el vacío, por lo que la energía radiante que viaja por ellos no se ve atenuada. Sin embargo en la vida real ciertos componentes ambientales como la niebla o el humo invalidan dicha suposición. Es por ello que es habitual que los ray tracers simulen este tipo de efectos ambientales, dónde la energía radiante se ve atenuada al viajar por el espacio en presencia de partículas en suspensión. No obstante, en lo referente a los objetivos de este trabajo podemos obviar este tipo de efectos.
 
-\section{ad}
+\section{Concepto de método de Monte Carlo y su relación con el ray-tracing}
+
+Los métodos de Monte Carlo son un conjunto de algoritmos basados en el muestreo aleatorio. Sus objetivos son:
+
+\begin{itemize}
+\item Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico, sea $X:\Gamma \rightarrow \mathds{R}^n$ una variable o un vector aleatorio y sea $P_X$ su distribución de probabilidad, generar un conjunto de muestras $\{x^{(r)}\}_{r=1}^R$ independientes que sigan dicha distribución. 
+\item Estimar la esperanza de determinadas funciones bajo dicha distribución, es decir, sea $g$ una función mebible definida sobre $(\mathds{R}^n, \mathscr{B}^n)$, estimar el valor de:
+$$ E[g(X)] = \int g(s)\text{ }dP(s)$$
+\end{itemize}
+
+Vemos que una vez resolvamos el primer problema, podemos usar el siguiente estimador para resolver el segundo:
+\begin{equation}\label{estMC}
+\overset{\wedge}{g} = \frac{1}{R}\sum_{r=1}^R g(x^{(r)})
+\end{equation}
+
+Ya que es claro que si las muestras $\{x^{(r)}\}_{r=1}^R$ son independientes y siguen la distribución $P_X$, entonces la esperanza del estimador cumple que:
+$$E[\overset{\wedge}{g}] = E[\frac{1}{R}\sum_{r=1}^R g(x^{(r)})] = \frac{1}{R}\sum_{r=1}^R E[g(x^{(r)})] = \frac{1}{R} R E[g(X)] = E[g(X)]$$
+
+Al estimador definido en \ref{estMC} lo llamaremos estimador Monte Carlo de $g$. Habitualmente trabajaremos con vectores aleatorios continuos, así que salvo que se especifique lo contrario, así lo supondremos. Supongamos ahora que queremos estimar la integral de una función $h:K\rightarrow \mathds{R}$ en lugar de su esperanza. Sea $X:\Gamma \rightarrow K$ un vector aleatorio tal que su función de densidad $f_X$ cumple que $f_X(s)\neq 0$ para todo $s$ tal que $|h(s)|>0$, y sea $\{x^{(r)}\}_{r=1}^R$ un conjunto de muestras indepentientes siguiendo la distribución de probabilidad de $X$. Entonces para aproximar la integral de $h$ podemos utilizar el estimador Monte Carlo de la función $g = \frac{h}{f_X}$:
+
+$$\overset{\wedge}{g} = \frac{1}{R}\sum_{r=1}^R \frac{h(x^{(r)})}{f_X(x^{(r)})}$$
+
+En efecto la esperanza de $\overset{\wedge}{g}$ es igual a la integral de $h$ en $K$:
+
+\begin{align*}
+E[\overset{\wedge}{g}] &= E[\frac{1}{R}\sum_{r=1}^R \frac{h(x^{(r)})}{f_X(x^{(r)})}] = \frac{1}{R}\sum_{r=1}^R E[\frac{h(x^{(r)})}{f_X(x^{(r)})}] =\\
+&= \frac{R}{R}  \int _K \frac{h(x)}{f_X(x)}f_X(x) \text{ }dx = \int _K h(x) \text{ }dx
+\end{align*}
+
+La elección de la distribución de probabilidad respecto a la que tomamos las muestras es clave, ya que seleccionar una distribución de probabilidad que asigne mayores probabilidades a los puntos donde la función $g$ es mayor supone una importante técnica para reducir la varianza del estimador.
+
+Los métodos de Monte Carlo son una importante herramienta dentro del ray-tracing. El motivo de que estos métodos sean más efectivos en renderización que otras técnicas de integración numérica es que la varianza del estimador es independiente de la dimensionalidad del espacio muestreado. En efecto, sean $\{x^{(r)}\}_{r=1}^R$ un conjunto de muestras independientes siguiendo la distribución de probabilidad de $X$, y supongamos que $E[g(X)^2]< +\infty$. Entonces tenemos que:
+\begin{align*}
+\Var(\overset{\wedge}{g}) &= \Var(\frac{1}{R}\sum_{r=1}^R g(x^{(r)})) = \frac{1}{R^2}\Var(\sum_{r=1}^R g(x^{(r)})) \\
+&= \frac{1}{R^2}\sum_{r=1}^R \Var(g(x^{(r)})) = \frac{1}{R} \Var(g(X))
+\end{align*}
+
+Esto muestra que la varianza del estimador decrece con un ratio de $\frac{1}{R}$, dónde $R$ es el número de muestras.
+
+Estos métodos son utilizados, entre otras cosas, para estimar el valor de la ecuación de renderización (\ref{renderingEquation}), de ahí su importancia.
+
+\section{Objetivos}
 El principal objetivo de este trabajo es estudiar el uso de métodos de Monte Carlo en renderizadores 3D físicamente realistas para estimar numéricamente la distribución de radiancia en el espectro visible dentro de la escena renderizada. Asimismo se estudiarán diferentes algoritmos descritos en la literatura que reducen la varianza del estimador Monte Carlo, obteniendo así mejores resultados sin tener que aumentar el número de muestras.
 
 

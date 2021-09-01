@@ -12,7 +12,11 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
+\usepackage{enumitem}
+\usepackage{hyperref}
 
+\usepackage{cite}
+%\addbibresource{./bibliografia/bibliografia.bib}
 
 
 \decimalpoint
@@ -32,7 +36,7 @@
 
 \usepackage{longtable}
 
-\usepackage[pdfborder={000}]{hyperref} %referencia
+%\usepackage[pdfborder={000}]{hyperref} %referencia
 
 % ********************************************************************
 % Re-usable information
@@ -89,7 +93,9 @@ pdfproducer = {pdflatex}
 \renewcommand{\chaptermark}[1]{\markboth{\textbf{#1}}{}}
 \renewcommand{\sectionmark}[1]{\markright{\textbf{\thesection. #1}}}
 
-%\setlength{\headheight}{1.5\headheight}
+\renewcommand{\qedsymbol}{$\blacksquare$}
+
+\setlength{\headheight}{1.5\headheight}
 
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 %Definimos los tipos teorema, ejemplo y definición podremos usar estos tipos
@@ -98,6 +104,8 @@ pdfproducer = {pdflatex}
 \newtheorem{ejemplo}{Ejemplo}[chapter]
 \newtheorem{definicion}{Definición}[chapter]
 \newtheorem{proposicion}{Proposición}[chapter]
+\newtheorem{notacion}{Notación}[chapter]
+\newtheorem{lema}{Lema}[chapter]
 
 \definecolor{gray97}{gray}{.97}
 \definecolor{gray75}{gray}{.75}
@@ -156,9 +164,27 @@ pdfproducer = {pdflatex}
     numbers=none
    }
 
+   
+\lstnewenvironment{algorithm}[1][] %defines the algorithm listing environment
+{   
+    \lstset{ %this is the stype
+        mathescape=true,
+        frame=tB,
+        numbers=left, 
+        numberstyle=\tiny,
+        basicstyle=\scriptsize, 
+        keywordstyle=\color{black}\bfseries\em,
+        keywords={,input, output, return, datatype, function, in, if, else, foreach, while, begin, end, } %add the keywords you want, or load a language as Rubens explains in his comment above.
+        numbers=left,
+        xleftmargin=.04\textwidth,
+        #1 % this is to add specific settings to an usage of this environment (for instnce, the caption and referable label)
+    }
+}
+{}
 
 \newcommand{\bigrule}{\titlerule[0.5mm]}
 
+\newcommand{\Var}{\mathrm{Var}}
 
 %Para conseguir que en las páginas en blanco no ponga cabecerass
 \makeatletter
@@ -180,45 +206,42 @@ pdfproducer = {pdflatex}
 
 \usepackage{pdfpages}
 \begin{document}
+
+\frontmatter
 \input{portada/portada}
 \input{prefacios/prefacio}
 %\frontmatter
 \tableofcontents
-%\listoffigures
-%\listoftables
+\listoffigures
 
-%\mainmatter
+\mainmatter
 \setlength{\parskip}{5pt}
 
 \input{capitulos/01_Introduccion}
 %
 \input{capitulos/02_MetodosMonteCarlo}
 %
-%\input{capitulos/03_Planificacion}
+\input{capitulos/03_AproximacionRE}
 %
-%\input{capitulos/04_Analisis}
-%
-%\input{capitulos/05_Diseno}
-%
-%\input{capitulos/06_Implementacion}
-%
-%\input{capitulos/07_Pruebas}
-%
-%\input{capitulos/08_Conclusiones}
-%
+\input{capitulos/04_MuestreoDirecto}
+
 %%\chapter{Conclusiones y Trabajos Futuros}
 %
 %
-%%\nocite{*}
-%\bibliography{bibliografia/bibliografia}\addcontentsline{toc}{chapter}{Bibliografía}
-%\bibliographystyle{miunsrturl}
-%
+
+\nocite{*}
+\bibliography{bibliografia/bibliografia}\addcontentsline{toc}{chapter}{Bibliografía}
+\bibliographystyle{alpha}
+%\printbibliography
+%\addcontentsline{toc}{chapter}{Bibliografía}
+%\bibliographystyle{numeric}
+
 %\appendix
 %\input{apendices/manual_usuario/manual_usuario}
 %%\input{apendices/paper/paper}
 %\input{glosario/entradas_glosario}
 % \addcontentsline{toc}{chapter}{Glosario}
 % \printglossary
-\thispagestyle{empty}
+%\thispagestyle{empty}
 
 \end{document}

@@ -22,7 +22,7 @@ Si queremos generar una imagen realista necesitamos simular el funcionamiento de
   \end{minipage}}
   \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
     \abovecaptionskip=0pt
-    \caption{The caption text}
+    \caption{Simulación de la cámara estenopeica. Imagen extraída de \cite{Pharr2016}}
   \end{minipage}}
 \end{figure}
 
@@ -58,7 +58,7 @@ Dónde notamos por $\mathds{S}^2$ a la esfera unidad de $\mathds{R}^3$. De esta 
   \end{minipage}}
   \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
     \abovecaptionskip=0pt
-    \caption{The caption text}
+    \caption{Reflexión de la luz. Imagen extraída de \cite{Pharr2016}}
   \end{minipage}}
 \end{figure}
 
@@ -83,10 +83,6 @@ Antes de presentar las magnitudes radiométricas centrales en renderización, va
 \subsubsection*{Ángulo sólido}
 
 Como ya sabemos, en una circunferencia de radio unidad, el ángulo en radianes entre dos radios es igual a la longitud de circunferencia comprendida entre ellos (figura 1.3). Conceptualmente, el ángulo sólido se trata de una extensión de los ángulos planos a $\mathds{R}^3$, y mide el tamaño con el que se ve un objeto desde un punto. Podemos entender un objeto como una superficie simple, regular a trozos y orientable.
-
-\begin{definicion}
-  Consideremos un punto $P \in \mathds{R}^3$ y sea $A \subseteq \mathds{R}^3/\{P\}$ una superficie simple, regular a trozos y orientable. Se denomina ángulo sólido subtendido por $A$ desde $P$ a la región del espacio $\{P + \lambda (V-P) \in \mathds{R}^3 : \lambda \in (0,1], V \in A\}$, y se nota por $\Omega(A)$. 
-\end{definicion}
 
 \begin{definicion}
     Sea $P \in \mathds{R}^3$ y consideremos la esfera unidad con centro $P$, $\mathcal{B}(P,1)$. Sea $\pi :\mathds{R}^3/\{P\}\rightarrow \mathcal{B}(P,1)$ la proyección sobre la esfera $\mathcal{B}(P,1)$, es decir, $\pi(r) = P + \frac{r-P}{\|r-P\|}$. Sea $A \subseteq \mathds{R}^3/\{P\}$ una superficie simple, regular a trozos y orientable, y tomamos $I = \int _{\pi(A)} dS$. Entonces diremos que el ángulo sólido subtendido por $A$ desde $P$ mide $I$ estereorradianes.
@@ -119,7 +115,7 @@ Como ya sabemos, en una circunferencia de radio unidad, el ángulo en radianes e
 En la definición anterior hemos usado $dS$ para denotar la integral de superficie. Como vemos el ángulo sólido subtendido por un objeto claramente depende del punto de referencia $P$. Sin embargo, supongamos que queremos medir el ángulo sólido subtendido por un objeto desde un punto $P$. En renderización se trabaja con $\mathds{R}^3$ como espacio afín, por lo que podemos aplicar una traslación del marco de referencia para situar $P$ en el origen de coordenadas. Por tanto, a efectos prácticos siempre podemos suponer que trabajamos en la esfera unidad $\mathds{S}^2$. Vamos a definir ahora la función que mide el ángulo sólido en la esfera unidad:
 
 \begin{definicion}
-  Sea $\mathscr{S}$ la familia de superficies simples contenidas en la esfera unidad $\mathds {S}^2$, definimos la función $\mu :\mathscr{S} \rightarrow \mathds{R}^+_0$ como:
+  Sea $\mathscr{S}$ la familia de superficies contenidas en la esfera unidad $\mathds {S}^2$, definimos la función $\mu :\mathscr{S} \rightarrow \mathds{R}^+_0$ como:
   $$\mu(C) = \int_C \text{ }dS , \hspace{0.5cm} \forall C\in \mathscr{S}$$
 
   La función $\mu$ mide el ángulo sólido subtendido por cada superficie simple de la esfera.
@@ -136,10 +132,12 @@ $$\Theta _\varphi(\theta ,\varphi ) = \frac{\partial \Theta}{\partial \varphi}(\
 $$\Theta _\theta(\theta ,\varphi )\times \Theta _\varphi(\theta ,\varphi ) = (\sin^2\theta\cos\varphi,\sin^2\theta\sin\varphi,\sin\theta\cos\theta)$$
 
 Con lo que concluimos que:
-\begin{align*}
+\begin{align}\label{intAngSolSin}
+\begin{split}
 \mu (C) = \int_C \text{ }dS &= \iint_{\Theta^{-1}(C)}\|\Theta _\theta(\theta ,\varphi )\times \Theta _\varphi(\theta ,\varphi )\| d\theta d\varphi \\
 &= \iint_{\Theta^{-1}(C)} \sin\theta d\theta d\varphi \hspace{1cm} \forall C \in \mathscr{S}
-\end{align*}
+\end{split}
+\end{align}
 
 De aquí en adelante, por comodidad, notaremos por $\pi$ a la proyección sobre la esfera unidad $\mathds{S}^2$, es decir, $\pi(p)=\frac{p}{\|p\|}$, $\forall p \in \mathds{R}^3/\{(0,0,0)\}$. Pasamos ahora a demostrar la siguiente proposición:
 
@@ -164,6 +162,9 @@ De aquí en adelante, por comodidad, notaremos por $\pi$ a la proyección sobre 
   \end{minipage}}
 \end{figure}
 
+\begin{notacion}
+Notaremos por $u \cdot v$ al producto escalar de los vectores $u$ y $v$.
+\end{notacion}
 
 \begin{proof}
 
@@ -182,17 +183,17 @@ $$\int _{\partial C_r}g\text{ } dS = \iiint _{C_r}\text{div } g \text{ }dx dy dz
 
 Sea $C_p = \bigcup _{i=1}^n S_i$ una descomposición finita de $C_p$ como unión de superficies simples y regulares. Fijado $i\in \{1\ldots n\}$, sea $\Psi^i : W^i \rightarrow \mathds{R}^3$ una parametrización simple y suave de $S_i$ orientada mediante la normal exterior, y sean $\Psi^i_u$, $\Psi^i_v$ sus derivadas parciales. Es fácil ver que dado un punto $P\in S_i$, se tiene que el vector que va desde el origen hasta $P$ es perpendicular a la normal a $S_i$ en $P$. Por tanto tenemos que:
 
-$$ \int_{S_i} g\text{ }dS = \iint _{W^i} \frac{<\Psi^i(u,v) | (\Psi^i_u(u,v)\times \Psi^i_v (u,v))>}{\|\Psi^i(u,v)\|^3}\text{ } du dv = 0$$
+$$ \int_{S_i} g\text{ }dS = \iint _{W^i} \frac{\Psi^i(u,v) \cdot (\Psi^i_u(u,v)\times \Psi^i_v (u,v))}{\|\Psi^i(u,v)\|^3}\text{ } du dv = 0$$
 
 
-Dónde se ha usado que $<\Psi^i(u,v) | (\Psi^i_u(u,v)\times \Psi^i_v (u,v))> = 0$, $\forall (u,v)\in W^i$, ya que el producto vectorial de las derivadas parciales es igual a la normal a la superficie y el producto escalar de vectores perpendiculares es nulo. Sabemos que $\partial C_i = C\cup \pi(C) \cup C_p$, y usando las dos igualdades anteriores tenemos que:
+Dónde se ha usado que $\Psi^i(u,v) \cdot (\Psi^i_u(u,v)\times \Psi^i_v (u,v)) = 0$, $\forall (u,v)\in W^i$, ya que el producto vectorial de las derivadas parciales es igual a la normal a la superficie y el producto escalar de vectores perpendiculares es nulo. Sabemos que $\partial C_i = C\cup \pi(C) \cup C_p$, y usando las dos igualdades anteriores tenemos que:
 
 $$0 = \int _{\partial C_r}g\text{ } dS = \int _{C}g\text{ } dS + \int _{\pi(C)}g\text{ } dS $$
 
 Sea $\Phi :W\rightarrow \mathds{R}^3$, una parametrización simple y suave de $\pi (C)$ orientada con la normal exterior, y sean $\Phi _u$, $\Phi _v$ sus derivadas parciales. Como $\pi (C)$ está contenido en la esfera unidad, para todo $(u,v)\in W$ se cumple que $-\Phi(u,v) = \frac{\Phi_u(u,v)\times \Phi_v (u,v)}{\|\Phi_u(u,v)\times \Phi_v (u,v)\|}$ y que  $\|\Phi(u,v)\| = 1$, y por ello:
 
 \begin{align*}
-  \int _{\pi(C)}g\text{ } dS &= \iint _{W} \frac{<\Phi(u,v) | (\Phi_u(u,v)\times \Phi_v (u,v))>}{\|\Phi(u,v)\|^3}\text{ } du dv =\\
+  \int _{\pi(C)}g\text{ } dS &= \iint _{W} \frac{\Phi(u,v) \cdot (\Phi_u(u,v)\times \Phi_v (u,v))}{\|\Phi(u,v)\|^3}\text{ } du dv =\\
   &= - \iint _{W} \frac{\|\Phi_u(u,v)\times \Phi_v (u,v)\|}{\|\Phi(u,v)\|^2}\text{ } du dv = - \int _{\pi(C)}\text{ } dS
 \end{align*}
 
@@ -268,7 +269,7 @@ Por como están definidas las magnitudes anteriores tenemos las siguientes relac
 \item La irradiancia en un punto $p\in \mathds{R}^3$ perteneciente a una superficie con normal $n$ en $p$ cumple que:
   $$ E(p) = \int _{\mathds{S}^2} L_i(p,\omega ) |n \cdot \omega| \text{ } d\mu(\omega )$$
 
-  Dónde se multiplica por $| n\cdot \omega |$ debido al hecho de que la radiancia se mide respecto a la superficie proyectada. Notar que $| n\cdot \omega |$ es igual al coseno del ángulo que forman.
+  Dónde se multiplica por $| n\cdot \omega |$ debido al hecho de que la radiancia se mide respecto a la superficie proyectada. Notar que $| n\cdot \omega |$ es igual al valor absoluto del coseno del ángulo que forman $n$ y $\omega$.
 
 \item El flujo en una superficie $A\subseteq \mathds{R}^3$ cumple que:
   $$\Phi (A)= \int _A E\text{ }dS$$
@@ -284,7 +285,7 @@ donde $f$ es la $BDSF$ descrita en el apartado anterior. Esta ecuación se conoc
 L_s(p,\omega _o) = L_e(p,\omega_o) + \int _{\mathds{S}^2}f(p,\omega _o, \omega _i) L_i(p, \omega _i) |n\cdot \omega _i|\text{ }d\mu (\omega _i)
 \end{equation}
 
-dónde la función $L_e(p, \omega_o)$ describe la radiancia emitida en el punto $p$ y en la dirección $\omega_o$. Esta ecuación se denomina \emph{ecuación de renderización}, o \emph{rendering equation}, y es fundamental en ray-tracing, ya que es la ecuación utilizada para estimar el color de los puntos con los que interseccionan los rayos trazados por la cámara, estimando el valor de radiancia saliente en dirección a la cámara en el punto de intersección. La complejidad de la integral dependerá de la escena que estemos renderizando, y como podemos intuir no tiene una solución analítica. En el capítulo 3 abordaremos diferentes formas de aproximar esta ecuación.
+dónde la función $L_e(p, \omega_o)$ describe la radiancia emitida en el punto $p$ y en la dirección $\omega_o$. Esta ecuación se denomina \emph{ecuación de renderización}, o \emph{rendering equation}, y es fundamental en ray-tracing, ya que es la ecuación utilizada para estimar el color de los puntos con los que interseccionan los rayos trazados por la cámara, estimando el valor de radiancia saliente en dirección a la cámara en el punto de intersección. La complejidad de la integral dependerá de la escena que estemos renderizando, y como podemos intuir no tiene una solución analítica. Hay diferentes formas de abordar el problema de aproximar la ecuación de renderización, como veremos en el capítulo 4.
 
 Hay que destacar que el algoritmo de ray-tracing tiene una naturaleza recursiva, ya que con el objetivo de estimar el color de un punto, se trazarán rayos desde ese punto en direcciones dónde el valor de radiancia incidente o de BDSF sea grande. Dicho rayo puede volver a interseccionar con otro componente de la escena, del cuál tendremos que estimar a su vez la radiancia saliente en dirección al punto inicial.
 
@@ -329,12 +330,37 @@ Los métodos de Monte Carlo son una importante herramienta dentro del ray-tracin
 &= \frac{1}{R^2}\sum_{r=1}^R \Var(g(x^{(r)})) = \frac{1}{R} \Var(g(X))
 \end{align*}
 
-Esto muestra que la varianza del estimador decrece con un ratio de $\frac{1}{R}$, dónde $R$ es el número de muestras.
+Esto muestra que la varianza del estimador decrece con un ratio de $\frac{1}{R}$, dónde $R$ es el número de muestras. 
 
-Estos métodos son utilizados, entre otras cosas, para estimar el valor de la ecuación de dispersión (\ref{dispersion}), de ahí su importancia.
+Estos métodos son ampliamente utilizados dentro de los renderizadores fotorrealistas, y su aplicación más importante en este ámbito es permitirnos estimar el valor de la ecuación de renderización (\ref{renderingEquation}). 
 
-\section{Objetivos}
-El principal objetivo de este trabajo es estudiar el uso de métodos de Monte Carlo en renderizadores 3D físicamente realistas para estimar numéricamente la distribución de radiancia en el espectro visible dentro de la escena renderizada. Asimismo se estudiarán diferentes algoritmos descritos en la literatura que reducen la varianza del estimador Monte Carlo, obteniendo así mejores resultados sin tener que aumentar el número de muestras.
+\section{Problema a resolver}
+En un ray-tracer, la cantidad de operaciones necesarias para calcular una estimación del color de un píxel es muy alta, ya que conlleva trazar numerosos rayos y calcular sus intersecciones con la escena. Dado que habrá miles de píxeles en la imagen final, es esencial obtener buenos resultados sin necesidad de tener que incrementar en gran medida el número de muestras tomadas por cada píxel, lo cual se consigue mediante una reducción de la varianza de los estimadores usados. Por ello, el principal problema a resolver es el estudio de métodos que reduzcan la varianza de los estimadores Monte Carlo usados en ray-tracing para aproximar la ecuación de renderización.
 
+Para poder abordar este problema se requiere resolver una cuestión previa, realizar un estudio de los métodos de Monte Carlo más utilizados en ray-tracing, lo cuál se abordará desde un punto de vista matemático y formal.
 
+\section{Contenido de la memoria y principales fuentes y herramientas empleadas}
+El trabajo realizado está dividido en dos partes, si bien ambas están estrechamente relacionadas. La primera parte, enfocada a los aspectos más matemáticos, asume ciertos conocimientos en probabilidad y teoría de la medida. Esta parte comprende dos capítulos:
+\begin{itemize}
+\item En el capítulo \ref{MonteCarlo} estudiaremos los principales métodos de Monte Carlo. Iniciaremos el capítulo detallando ciertos conceptos básicos relacionados con procesos estocásticos. A continuación presentaremos y demostraremos una serie de resultados que nos llevarán a la ley fuerte de los números grandes, el teorema que nos asegura la convergencia del estimador Monte Carlo. Detallaremos una serie de métodos de Monte Carlo para generar muestras y finalizaremos el capítulo presentando tres métodos de reducción de la varianza en estimadores de Monte Carlo. Este apartado sigue algunas de las ideas detalladas en \cite{Graham2013}, aunque también se han consultado demostraciones alternativas en \cite{Williams1991}. También se ha consultado \cite{Veach97} para los métodos de reducción de varianza y \cite{Roberts2004} para ciertos aspectos relacionados con los procesos de Markov y el método de Metrópolis.
+
+\item En el capítulo \ref{AproximacionRE} se detallan las dos formas más elementales de aproximar la ecuación de renderización, la iluminación directa y el algoritmo de \emph{path tracing}. Estas aproximaciones se basan en el uso de estimadores de Monte Carlo. En este capítulo la fuente principal es \cite{Pharr2016}, y para la fundamentación matemática del algoritmo de path tracing se ha consultado el artículo \cite{Dimov2005}. 
+\end{itemize}
+
+En la parte de informática presentaremos y estudiaremos brevemente tres algoritmos que nos permiten tomar muestras respecto a distribuciones de probabilidad sobre el ángulo sólido subtendido por una fuente de luz de área. Estos algoritmos están enfocados a reducir la varianza de los estimadores de la ecuación de renderización. Los algoritmos están recogidos en los artículos \cite{Urena2013} \cite{Urena2018} \cite{Guillen2017}, y serán implementados en el renderizador de código abierto \cite{pbrtCode}. Se realizarán pruebas para mostrar los resultados obtenidos con la implementación.
+
+Por último, destacar las fuentes \cite{Shirley2020RTW1}, \cite{Shirley2020RTW2} y \cite{Shirley2020RTW3}, que fueron esenciales como introducción en el ámbito de los ray tracers. \cite{Pharr2016} también ha sido fundamental, tanto por otorgar un renderizador de código abierto como por detallar muchos de los conceptos y algoritmos utilizados en ray-tracing. 
+
+\chapter{Objetivos}
+
+Los objetivos inicialmente previstos fueron los siguientes:
+
+\begin{itemize}
+\item Realizar una revisión bibliográfica de los métodos de Monte Carlo.
+\item Investigar técnicas de reducción de la varianza en métodos de Monte Carlo.
+\item Realizar un análisis, implementación y pruebas de software de algoritmos descritos en la literatura basados en métodos de Monte Carlo para la síntesis de imágenes realistas.
+\item Analizar posibilidades de mejora de los algoritmos en eficiencia o reducción de varianza.
+\end{itemize}
+
+Los primeros dos objetivos han sido alcanzados en el capítulo \ref{MonteCarlo}. Por otro lado, aunque inicialmente no era un objetivo del trabajo, en el capítulo \ref{AproximacionRE} se han analizado desde un punto de vista matemático las dos formas más elementales de aproximar la ecuación de renderización, ya que de esta manera se pone de manifiesto la utilidad de los métodos de Monte Carlo en la síntesis de imágenes realistas. El tercer objetivo se ha alcanzado en el capítulo \ref{MuestreoDirecto}, mientras que no ha sido posible abordar el último objetivo.
 
