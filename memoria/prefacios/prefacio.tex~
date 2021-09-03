@@ -3,23 +3,19 @@
 \thispagestyle{empty}
 
 \begin{center}
-{\large\bfseries Métodos de Monte Carlo de baja varianza para simulación numérica de iluminación global}\\
+{\large\bfseries Título del Proyecto: Subtítulo del proyecto}\\
 \end{center}
 \begin{center}
-Emilio José Hoyo Medina\\
+Nombre Apellido1 Apellido2 (alumno)\\
 \end{center}
 
 %\vspace{0.7cm}
-\noindent{\textbf{Palabras clave}: ray-tracing, ecuación de renderización, método de Monte Carlo , muestreo de variables aleatorias.}\\
+\noindent{\textbf{Palabras clave}: palabra\_clave1, palabra\_clave2, palabra\_clave3, ......}\\
 
 \vspace{0.7cm}
 \noindent{\textbf{Resumen}}\\
 
-Los métodos de Monte Carlo permiten estimar ciertas funciones, siendo en ocasiones la única solución manejable gracias a que su ratio de convergencia es independiente de la dimensionalidad del espacio de trabajo. Este es el motivo de su importancia dentro de los renderizadores fotorrealistas.
-
-
-Este trabajo estudia la base matemática de los principales métodos de Monte Carlo, permitiendonos así detallar los algoritmos de simulación numérica de iluminación global más básicos utilizados en la síntesis de imágenes realistas. Posteriormente se analizarán e implementarán una serie de artículos recientes que buscan reducir la varianza de los métodos de Monte Carlos usados en ray-tracing.
-
+Poner aquí el resumen.
 \cleardoublepage
 
 
@@ -27,14 +23,14 @@ Este trabajo estudia la base matemática de los principales métodos de Monte Ca
 
 
 \begin{center}
-{\large\bfseries Low variance Monte Carlo methods for numerical simulation of global illumination}\\
+{\large\bfseries Project Title: Project Subtitle}\\
 \end{center}
 \begin{center}
-Emilio José Hoyo Medina\\
+First name, Family name (student)\\
 \end{center}
 
 %\vspace{0.7cm}
-\noindent{\textbf{Keywords}:  }\\
+\noindent{\textbf{Keywords}: Keyword1, Keyword2, Keyword3, ....}\\
 
 \vspace{0.7cm}
 \noindent{\textbf{Abstract}}\\
@@ -46,19 +42,19 @@ Write here the abstract in English.
 
 \noindent\rule[-1ex]{\textwidth}{2pt}\\[4.5ex]
 
-Yo, \textbf{Emilio José Hoyo Medina}, alumno de la titulación Doble grado en ingeniería informática y matemáticas de la \textbf{Escuela Técnica Superior
+Yo, \textbf{Nombre Apellido1 Apellido2}, alumno de la titulación TITULACIÓN de la \textbf{Escuela Técnica Superior
 de Ingenierías Informática y de Telecomunicación de la Universidad de Granada}, con DNI XXXXXXXXX, autorizo la
 ubicación de la siguiente copia de mi Trabajo Fin de Grado en la biblioteca del centro para que pueda ser
 consultada por las personas que lo deseen.
 
 \vspace{6cm}
 
-\noindent Fdo: Emilio José Hoyo Medina
+\noindent Fdo: Nombre Apellido1 Apellido2
 
 \vspace{2cm}
 
 \begin{flushright}
-Granada a  de septiembre de 2021.
+Granada a X de mes de 201 .
 \end{flushright}
 
 

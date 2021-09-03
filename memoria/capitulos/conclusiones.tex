@@ -1,0 +1,11 @@
+\titlespacing*{\subsection}
+  {0pt}{2\baselineskip}{\baselineskip}
+
+  \chapter{Conclusiones y trabajo futuro}
+
+  
+  En este trabajo hemos estudiado la base matemática de los métodos de Monte Carlo más utilizados en renderización, así como también hemos descrito formalmente los algoritmos más básicos de aproximación de la ecuación de renderización. Esto nos ha dado las herramientas para entender la importancia que tienen los métodos de muestreo de fuentes de luz en un renderizador fotorrealista, ya que utilizar muestras respecto de una distribución de probabilidad conveniente permite reducir significativamente la varianza de los estimadores, consiguiendo así una mejor aproximación con menos muestras.
+
+  Sin embargo, queda mucho por hacer. Los métodos de muestreo de fuentes de luz presentados, si bien reducen la varianza del estimador Monte Carlo que aproxima la ecuación de renderización, tienen sus inconvenientes. Por un lado, muchos de ellos incrementan en gran medida el tiempo de ejecución necesario para generar una imagen, por lo que se podrían analizar posibilidades de mejora en cuanto a eficiencia o reducción de la varianza. Además, los métodos que consisten en el muestreo uniforme del ángulo sólido subtendido por la fuente de luz, aún sufren el inconveniente de que su estimador asociado tiene un término coseno multiplicando, lo cuál hace que las muestras cercanas al horizonte no tengan apenas aportación. Una vía de mejora sería intentar buscar parametrizaciones del ángulo sólido proyectado asociado a fuentes de luz rectangulares o con forma de disco. También puede ser interesante investigar la parametrización del ángulo sólido o ángulo sólido proyectado subtendido por otras formas geométricas.
+
+  Por otra parte, se puede estudiar el uso y las características de otros renderizadores de producción, así como también queda pendiente el estudio de otras formas de aproximación de la ecuación de renderización, como los métodos bidireccionales o el método de transporte de luz de Metrópolis, que no han sido tratados en este trabajo. Un aspecto también muy relevante que hemos pasado por alto es el comportamiento de la luz en medios distintos del vacío.

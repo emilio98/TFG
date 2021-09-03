@@ -12,8 +12,10 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
-\usepackage{enumitem}
+\usepackage{enumitem} 
 \usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption} 
 
 \usepackage{cite}
 %\addbibresource{./bibliografia/bibliografia.bib}
@@ -185,6 +187,8 @@ pdfproducer = {pdflatex}
 
 \newcommand{\Var}{\mathrm{Var}}
 
+\newcommand{\source}[1]{\centering Fuente: #1}
+
 %Para conseguir que en las páginas en blanco no ponga cabecerass
 \makeatletter
 \def\clearpage{%
@@ -224,8 +228,8 @@ pdfproducer = {pdflatex}
 %
 \input{capitulos/04_MuestreoDirecto}
 
-%%\chapter{Conclusiones y Trabajos Futuros}
-%
+\input{capitulos/conclusiones}
+
 %
 
 \nocite{*}
