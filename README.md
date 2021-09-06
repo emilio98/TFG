@@ -1,4 +1,4 @@
-# Trabajo de Fin de Grado"
+# Trabajo de Fin de Grado
 Este repositorio contiene el código fuente de mi trabajo de fin de grado. 
 
 ###  Métodos de Monte Carlo de baja varianza para simulación numérica de iluminación global ###
