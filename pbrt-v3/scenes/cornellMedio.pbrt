@@ -1,0 +1,49 @@
+Integrator "volpath" "integer maxdepth" [ 1 ]
+#Integrator "directlighting" 
+#Integrator "bdpt" "integer maxdepth" [ 2 ] 
+Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1]
+Sampler "random" "integer pixelsamples" [ 25 ] 
+PixelFilter "triangle" "float xwidth" [ 1.000000 ] "float ywidth" [ 1.000000 ] 
+Film "image" "integer xresolution" [ 1024 ] "integer yresolution" [ 1024 ] "string filename" [ "spherep10.png" ] 
+Camera "perspective" "float fov" [ 19.500000 ] 
+WorldBegin
+#MakeNamedMedium "gas" "string type" [ "homogeneous" ] "rgb sigma_s" [ 1.000000 1.000000 1.000000 ] "rgb sigma_a" [ 0.000000 0.000000 0.000000 ] 
+MakeNamedMedium "gas" "string type" [ "homogeneous" ]  "rgb sigma_s" [2.5 2.5 2.5] "rgb sigma_a" [ 0.200000 0.200000 0.200000 ]
+
+	MakeNamedMaterial "FrontWall" "string type" [ "none" ]
+	MakeNamedMaterial "Light" "string type" [ "none" ] 
+
+
+ AttributeBegin
+		MediumInterface "gas" ""
+		NamedMaterial "FrontWall" 
+		Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -1 2 2 -1 0 2 1 0 2 1 2 2 ] "normal N" [ 0 -4.37114e-008 1 0 -4.37114e-008 1 0 -4.37114e-008 1 0 -4.37114e-008 1 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+	AttributeEnd
+
+	AttributeBegin
+		MediumInterface "gas" "gas"
+		#Translate -0.05 1.7 0.03
+		Translate -0.05 1.5 -0.1
+		Rotate 75 1 0 0
+		AreaLightSource "diffuse" "rgb L" [ 25 25 25 ] 
+		NamedMaterial "Light" 
+		Shape "rectangle" "float height" [0.9] "float width" [0.9] "integer samplingMode" [2] 
+    #Shape "disk" "float radius" [0.5] "integer samplingMode" [] 
+    #Shape "sphere" "float radius" [0.15] "integer samplingMode" [1]  
+	AttributeEnd
+	AttributeBegin
+	MediumInterface "gas" "gas"
+		Translate -0.05 1 0.2
+    Shape "sphere" "float radius" [0.15] 
+	AttributeEnd
+
+	#AttributeBegin
+	#	Translate 0.6 1 1
+	#	Rotate 90 1 0 0
+	#	AreaLightSource "diffuse" "rgb L" [ 17.000000 12.000000 4.000000 ] 
+	#	NamedMaterial "Light" 
+	#	#Shape "rectangle" "float height" [1] "float width" [1] "integer samplingMode" [2] 
+ #   #Shape "disk" "float radius" [0.35] "integer samplingMode" [3] 
+ #   Shape "sphere" "float radius" [0.15] "integer samplingMode" [2]  
+	#AttributeEnd
+WorldEnd

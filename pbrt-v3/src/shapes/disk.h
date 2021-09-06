@@ -43,12 +43,14 @@
 
 namespace pbrt {
 
+//Estructura con los datos de la elipse esférica en el 
+//muestreo uniforme respecto al ángulo sólido.
 struct SphEllipseData {
   Vector3f xd, yd, zd;
   Vector3f oc;
   Vector3f ye, ze;
   int signX, signY;
-  Float a, b, alpha, beta, at, bt;
+  double a, b, alpha, beta, at, bt;
   double solidAngle;
 };
 
@@ -75,10 +77,14 @@ class Disk : public Shape {
                        Float *pdf) const;
     void ComputeSphEllipseData(SphEllipseData *data, Point3f o) const;
     Point3f ReprojectToDisk(const Vector3f &q, const SphEllipseData *data, const Point3f &o) const;
+    Float Pdf(const Interaction &ref, const Vector3f &wi) const;
 
   private:
     // Disk Private Data
     const Float height, radius, innerRadius, phiMax;
+    //samplingMode=1: muestreo uniforme respecto al área
+    //samplingMode=2: muestreo uniforme respecto al ángulo sólido, mapeo radial
+    //samplingMode=3: muestreo uniforme respecto al ángulo sólido, mapeo paralelo
     const int samplingMode;
 };
 

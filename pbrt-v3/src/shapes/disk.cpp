@@ -138,7 +138,6 @@ Interaction Disk::Sample(const Point2f &u, Float *pdf) const {
 }
 
 void Disk::ComputeSphEllipseData(SphEllipseData *data, Point3f o) const{
-
     Vector3f up = data->oc + data->yd*radius;
 
     Vector3f down = data->oc - data->yd*radius;
@@ -148,6 +147,12 @@ void Disk::ComputeSphEllipseData(SphEllipseData *data, Point3f o) const{
 
     Float zey = (y12+y02)*0.5, zez = (z12+z02)*0.5;
 
+    if(zey == 0 && zez ==0){
+        data->a = 1;
+        data->b = 1;
+        return;
+    }
+
     data->ze = Normalize(zey*data->yd + zez*data->zd);
     data->ye = Cross(data->ze, data->xd);
 
@@ -156,7 +161,6 @@ void Disk::ComputeSphEllipseData(SphEllipseData *data, Point3f o) const{
     Float yh = zh * (zey/zez);
 
     Float cy = Dot(data->oc, data->yd);
-    //std::cout << "\ncy" << cy << "\nyh" << yh << "\n";
     Float leg = yh - cy;
     Float x1 = std::sqrt(radius*radius - leg*leg);  
 
@@ -188,6 +192,7 @@ Point3f Disk::ReprojectToDisk(const Vector3f &q, const SphEllipseData *data, con
 
 Interaction Disk::Sample(const Interaction &ref, const Point2f &u,
                        Float *pdf) const{
+    //Muestreo uniforme respecto al área.
     if(samplingMode == 1){
         Interaction intr = Sample(u, pdf);
         Vector3f wi = intr.p - ref.p;
@@ -201,8 +206,10 @@ Interaction Disk::Sample(const Interaction &ref, const Point2f &u,
             if (std::isinf(*pdf)) *pdf = 0.f;
         }
         return intr;
+
     }else{
-        //Area preserving parametrization, radial map.
+        //Area preserving parametrizations.
+
         Interaction it;
         it.p = (*ObjectToWorld)(Point3f(0, 0, height));
         it.n = Normalize((*ObjectToWorld)(Normal3f(0, 0, 1)));
@@ -226,70 +233,198 @@ Interaction Disk::Sample(const Interaction &ref, const Point2f &u,
         data->zd = - Normalize((*ObjectToWorld)(Vector3f(0, 0, 1)));
         if (Dot(data->zd, data->oc)<0) data->zd *= -1;
 
-        data->xd = Normalize(Cross(data->oc, data->zd));
-        data->yd = Cross(data->zd, data->xd);  
+        data->xd = Cross(data->oc, data->zd);
+
+        if(data->xd.LengthSquared()==0){
+            CoordinateSystem(data->zd, &data->xd, &data->yd);
+        }else{
+            data->xd = Normalize(data->xd);
+            data->yd = Cross(data->zd, data->xd); 
+        } 
 
         ComputeSphEllipseData(data, ref.p);
 
-        if(data->a == 1 || data->b == 1){
+        if(data->a == 1 || data->b == 1 || std::isnan(data->a) || std::isnan(data->b)){
             *pdf = 0;      
             return it;
         }
 
-        Float a2 = data->a * data->a;
-        Float b2 = data->b * data->b;
-        Float oneb2 = 1 - b2;
+        Vector3f q;
 
-        double n = (a2 - b2) / (a2 * oneb2);
-        double m = (a2 - b2) / oneb2;
-        double p = data->b * (1-a2) / (data->a * std::sqrt(oneb2));
-        double at_bt = data->at / data->bt;
+        if(samplingMode == 2){
+            //Mapa Radial
+            //Utilizamos double para aumentar la precisión del resultado
+            //obtenido mediante el método de Newton-Raphson
+            double a2 = data->a * data->a;
+            double b2 = data->b * data->b;
+            double oneb2 = 1 - b2;
 
-        double u0;
-        if(u[0]<0.25){
-            data->signX = 1;
-            data->signY = 1;
-            u0 = std::min(4*u[0], OneMinusEpsilon);
-        }else if(u[0]<0.5){
-            data->signX = -1;
-            data->signY = 1;
-            u0 = std::min(1-4*(u[0]-0.25f), OneMinusEpsilon);
-        }else if(u[0]<0.75){
-            data->signX = -1;
-            data->signY = -1;
-            u0 = std::min((u[0]-0.5f)*4, OneMinusEpsilon);
+            double n = (a2 - b2) / (a2 * oneb2);
+            double m = (a2 - b2) / oneb2;
+            double p = data->b * (1-a2) / (data->a * std::sqrt(oneb2));
+            double at_bt = data->at / data->bt;
+
+            Point2f pd = ConcentricSampleDisk(u);
+            Float u0, u1 = pd[0]*pd[0] + pd[1]*pd[1], thetaAux = std::atan2(pd[1], pd[0]);
+            
+            if(thetaAux<0)
+                thetaAux += 2*M_PI;
+
+            if(thetaAux<M_PI_2)
+                u0 = 2*M_1_PI*thetaAux;
+            else if(thetaAux<M_PI)
+                u0 = 1-2*(thetaAux-M_PI_2)*M_1_PI;
+            else if(thetaAux<M_PI_2*3)
+                u0 = 2*M_1_PI*(thetaAux-M_PI);
+            else
+                u0 = 1-2*(thetaAux-M_PI_2*3)*M_1_PI;
+
+
+            if(u0<0.25){
+                data->signX = 1;
+                data->signY = 1;
+                u0 = std::min(4*u0, OneMinusEpsilon);
+            }else if(u0<0.5){
+                data->signX = -1;
+                data->signY = 1;
+                u0 = std::min(1-4*(u0-0.25f), OneMinusEpsilon);
+            }else if(u0<0.75){
+                data->signX = -1;
+                data->signY = -1;
+                u0 = std::min((u0-0.5f)*4, OneMinusEpsilon);
+            }else{
+                data->signX = 1;
+                data->signY = -1;
+                u0 = std::min(1-(u0-0.75f)*4, OneMinusEpsilon);
+            }
+
+    
+            data->solidAngle = omega_r2((double)M_PI_2, n, m, p, at_bt);
+
+            Float phi = NR_diskRad(1e-10, n, m, p, at_bt, u0*data->solidAngle, M_PI_2*u0);      
+
+            Float sinphi = std::sin(phi);
+            Float cosphi = std::cos(phi);
+
+            Float r = data->a * data->b / std::sqrt(a2*sinphi*sinphi + b2*cosphi*cosphi);
+            Float h = std::sqrt(1-r*r);
+
+            h = (1-u1)*h + u1;
+
+            r = std::sqrt(1-h*h);
+
+            q = data->signX*r*cosphi*data->xd + data->signY*r*sinphi*data->ye + h*data->ze;
+
+            data->solidAngle *= 4;
         }else{
-            data->signX = 1;
-            data->signY = -1;
-            u0 = std::min(1-(u[0]-0.75f)*4, OneMinusEpsilon);
+            //Mapa paralelo
+            //Utilizamos double para aumentar la precisión del resultado
+            //obtenido mediante el método de Newton-Raphson
+            double at2 = data->at*data->at;
+            double bt2 = data->bt * data->bt;
+            double ct = data->at/std::sqrt(1+ at2);
+            double n = -bt2;
+            double m = (at2-bt2)/(at2+1);
+            double ctbt = 2*ct/data->bt;
+
+            data->solidAngle = omega_p((double)data->beta, ctbt, n, m, data->bt, data->beta);
+            Float phi =NR_diskPar(1e-10, ctbt, n, m, data->bt, data->beta, u[0]*data->solidAngle, (u[0]-0.5)*2*data->beta); 
+
+            Float sinphi = std::sin(phi);
+            Float sinphi2 = sinphi * sinphi;
+            Float cosphi = std::cos(phi);
+            Float p = 1/bt2;
+
+            Float h= ct*std::sqrt((1-(p+1)*sinphi2)/(1-(m*p+1)*sinphi2));
+            h = (-1+u[1])*h + u[1] * h;
+
+            Float r = std::sqrt(1-h*h);
+
+            q = h*data->xd + r*sinphi*data->ye + r*cosphi*data->ze;
         }
-   
-        data->solidAngle = omega_r2(M_PI*0.5, n, m, p, at_bt);
-        Float phi = NR_diskRad(1e-10, n, m, p, at_bt, u0*data->solidAngle);
-        
-
-        Float sinphi = std::sin(phi);
-        Float cosphi = std::cos(phi);
-
-        Float r = data->a * data->b / std::sqrt(a2*sinphi*sinphi + b2*cosphi*cosphi);
-        Float h = std::sqrt(1-r*r);
-
-        h = (1-u[1])*h + u[1];
-
-        r = std::sqrt(1-h*h);
-
-        Vector3f q = data->signX*r*cosphi*data->xd + data->signY*r*sinphi*data->ye + h*data->ze;
 
         it.p = ReprojectToDisk(q, data, ref.p);
 
         if ((it.p-ref.p).LengthSquared() == 0)
             *pdf = 0;
         else {
-            *pdf = 1/(4*data->solidAngle);
+            *pdf = 1/(data->solidAngle);
             if (std::isinf(*pdf)) *pdf = 0;
         }
         return it;
+    }
+}
 
+Float Disk::Pdf(const Interaction &ref, const Vector3f &wi) const {
+    if(samplingMode==1){
+        // Intersect sample ray with area light geometry
+        Ray ray = ref.SpawnRay(wi);
+        Float tHit;
+        SurfaceInteraction isectLight;
+        // Ignore any alpha textures used for trimming the shape when performing
+        // this intersection. Hack for the "San Miguel" scene, where this is used
+        // to make an invisible area light.
+        if (!Intersect(ray, &tHit, &isectLight, false)) return 0;
+
+        // Convert light sample weight to solid angle measure
+        Float pdf = DistanceSquared(ref.p, isectLight.p) /
+                    (AbsDot(isectLight.n, -wi) * Area());
+        if (std::isinf(pdf)) pdf = 0.f;
+        return pdf;
+    }else{
+        Ray ray = ref.SpawnRay(wi);
+        Float tHit;
+        SurfaceInteraction isectLight;
+        if (!Intersect(ray, &tHit, &isectLight, false)) return 0;
+
+        Interaction it;
+        it.p = (*ObjectToWorld)(Point3f(0, 0, height));
+        it.n = Normalize((*ObjectToWorld)(Normal3f(0, 0, 1)));
+        if (reverseOrientation) it.n *= -1;
+
+        Point3f aux = (*WorldToObject)(ref.p);
+        Float rad = aux.x*aux.x + aux.y*aux.y;
+
+        if (rad <= (radius*radius) && aux.z == height){
+            return 0;
+        }
+        
+        SphEllipseData *data;
+
+        //Initialize constant spherical ellipse data
+        data = new SphEllipseData;
+
+        data->oc = (*ObjectToWorld)(Point3f(0, 0, height)) - ref.p;
+        data->zd = - Normalize((*ObjectToWorld)(Vector3f(0, 0, 1)));
+        if (Dot(data->zd, data->oc)<0) data->zd *= -1;
+
+        data->xd = Cross(data->oc, data->zd);
+
+        if(data->xd.LengthSquared()==0){
+            CoordinateSystem(data->zd, &data->xd, &data->yd);
+        }else{
+            data->xd = Normalize(data->xd);
+            data->yd = Cross(data->zd, data->xd); 
+        }  
+
+        ComputeSphEllipseData(data, ref.p);
+
+        if(data->a == 1 || data->b == 1){
+            return 0;      
+        }
+
+        double at2 = data->at*data->at;
+        double bt2 = data->bt * data->bt;
+        double ct = data->at/std::sqrt(1+ at2);
+        double n = -bt2;
+        double m = (at2-bt2)/(at2+1);
+        double ctbt = 2*ct/data->bt;
+
+        data->solidAngle = omega_p((double)data->beta, ctbt, n, m, data->bt, data->beta);
+
+        Float pdf = 1 / data->solidAngle;
+        if (std::isinf(pdf)) pdf = 0.f;
+        return pdf;
     }
 }
 

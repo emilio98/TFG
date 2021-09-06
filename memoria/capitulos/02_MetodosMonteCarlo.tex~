@@ -1,13 +1,15 @@
 \titlespacing*{\subsection}
   {0pt}{2\baselineskip}{\baselineskip}
 
-\chapter{Métodos de Monte Carlo}
+\part{Matemáticas}
 
-Al final del capítulo anterior se mencionaron los problemas a los que pretenden poner solución los métodos de Monte Carlo. En este capítulo se demostrará la convergencia del estimador de Monte Carlo y se describirán diversos métodos de Monte Carlo con aplicación en renderización.
+\chapter{Métodos de Monte Carlo}\label{MonteCarlo}
+
+Al final del capítulo anterior se mencionaron los problemas a los que pretenden poner solución los métodos de Monte Carlo. En este capítulo se demostrará la convergencia del estimador de Monte Carlo y se describirán diversos métodos de Monte Carlo con aplicación en renderización. Por último veremos tres métodos de reducción de varianza en el estimador Monte Carlo.
 
 \section{Conceptos básicos}
 
-Vamos a presentar una serie de conceptos que nos serán útiles posteriormente. Empezaremos por describir el concepto de proceso estocástico. Habitualmente se usa la letra $\Omega$ para referirse al espacio muestral en el que trabajamos, pero en nuestro caso usaremos $\Gamma$ para que no haya confusión con el concepto de ángulo sólido.
+Vamos a presentar una serie de conceptos que nos serán útiles posteriormente. Empezaremos por describir el concepto de proceso estocástico.
 
 \begin{notacion}
 Notaremos por $\mathscr{B}^n$ a la $\sigma$-álgebra de Borel en $\mathds{R}^n$.
@@ -271,7 +273,7 @@ $$\forall n \in \mathds{N}\text{, }\forall B\in \mathscr{B}_E\text{, } P(X_n\in 
 
 \section{Convergencia del estimador de Monte Carlo}
 
-Cuando presentamos el estimador de Monte Carlo, vimos que su esperanza es igual al valor que queremos aproximar, lo cual implica que si la varianza del estimador no es muy grande por lo general obtendremos valores cercanos al buscado. En esta sección enunciaremos y demostraremos el teorema que nos asegura la convergencia del estimador de Monte Carlo al valor buscado cuando el número de muestras tomadas tiende a infinito. Antes de poder abarcar dicha demostración necesitamos probar una serie de resultados previos.
+Cuando presentamos el estimador de Monte Carlo, vimos que su esperanza es igual al valor que queremos aproximar, lo cual implica que si la varianza del estimador no es muy grande por lo general obtendremos valores cercanos al buscado. En esta sección, siguiendo las ideas en \cite{Graham2013}, enunciaremos y demostraremos el teorema que nos asegura la convergencia del estimador de Monte Carlo al valor buscado cuando el número de muestras tomadas tiende a infinito. Antes de poder abarcar dicha demostración necesitamos probar una serie de resultados previos.
 
 
 \subsection{Tiempos de parada}
@@ -293,7 +295,7 @@ $$X_R(\gamma) = X_{R(\gamma)}(\gamma)\text{, }\forall \gamma\in\Gamma$$
 
 Una vez presentado este concepto, podemos demostrar el siguiente teorema.
 
-\begin{teorema}\label{opcional}
+\begin{teorema}[\cite{Graham2013}]\label{opcional}
 Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n, \mathscr{G}_n\}_{n\in \mathds{N}_0}$ una submartingala sobre $(\Gamma , \mathcal{A}, P)$. Sean $R, L$ dos tiempos de parada para la filtración $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$ satisfaciendo que $R\leq L \leq K\text{, }c.s.\text{-}P$ para algún $K\in \mathds{N}_0$. Entonces se cumple que:
 $$E[X_{R}]\leq E[X_{L}]$$
 \end{teorema}
@@ -406,7 +408,7 @@ donde en $(1)$ se ha usado que $\{X_n, \mathscr{G}_n\}_{n\in \mathds{N}_0}$ es u
 
 Ya tenemos las herramientas necesarias para demostrar la siguiente desigualdad. En esta demostración es clave el uso del teorema \ref{opcional}.
 
-\begin{teorema}\label{desigualdad}
+\begin{teorema}[\cite{Graham2013}]\label{desigualdad}
 Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n, \mathscr{G}_n\}_{n\in \mathds{N}_0}$ una submartingala sobre $(\Gamma , \mathcal{A}, P)$. Sean $a,b\in\mathds{R}, a<b$, $m\in\mathds{N}_0$. Entonces:
 $$E[U_m]\leq \frac{1}{b-a} E((X_m-a)^+)$$
 
@@ -493,7 +495,7 @@ $$E[U_{-m}] = E[U_{m-1}[a,b](\{X'_n\}_{n\in\mathds{N}_0})] \leq \frac{E[(X'_{m-1
 \end{proof}
 
 Por último antes de enunciar el teorema principal, enunciamos un teorema que será clave en su demostración.
-\begin{teorema}[Ley 0-1 de Kolmogorov]\label{Kolmog}
+\begin{teorema}[Ley 0-1 de Kolmogorov, ver \cite{Williams1991}]\label{Kolmog}
 Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}}$ una sucesión de variables aleatorias independientes, definidas sobre $(\Gamma, \mathcal{A}, P)$. Consideramos la $\sigma$-álgebra $\mathscr{T} = \bigcap_{k=1}^{+\infty}\sigma(X_k,X_{k+1},\ldots)$. Entonces cualquier variable aleatoria $\mathscr{T}$-medible es constante casi seguramente.
 \end{teorema}
 
@@ -501,7 +503,7 @@ Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \m
 
 Ya podemos enunciar y demostrar el resultado principal de esta sección, que nos permite asegurar la convergencia del estimador de Monte Carlo.
 
-\begin{teorema}[Ley fuerte de los números grandes]
+\begin{teorema}[Ley fuerte de los números grandes, \cite{Graham2013}]
 Sea $(\Gamma, \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}}$ una sucesión de variables aleatorias independientes e idénticamente distribuidas, definidas sobre $(\Gamma, \mathcal{A}, P)$. Supongamos que
 $$E[|X_1|]<+\infty$$
 
@@ -692,7 +694,7 @@ Este método nos permite muestrear una distribución a partir de otra distribuci
 
 El siguiente teorema nos asegura que tomando sucesivas muestras, llegará un punto en que una muestra sea aceptada, es decir, no rechazaremos infinitas muestras. También nos asegura que las muestras aceptadas siguen la distribución deseada.
 
-\begin{teorema}
+\begin{teorema}[\cite{Graham2013}]
 Sea $\{Y_n\}_{n\in\mathds{N}}$ una sucesión de vectores aleatorios independientes e idénticamente distribuidos con función de densidad $g$, definida sobre en $\mathds{R}^n$. Sea $\{V_n\}_{n\in\mathds{N}}$ una sucesión de variables aleatorias independientes e idénticamente distribuidas siguiendo una distribución uniforme en $[0,1]$. Supongamos que todos los términos de $\{Y_n\}_{n\in\mathds{N}}$ son a su vez independientes de todos los términos de $\{V_n\}_{n\in\mathds{N}}$. Sea $X$ un vector aleatorio con función de densidad $f$, definida sobre $\mathds{R}^n$. Supongamos que se cumple que $f(p)\leq c g(p)$, $\forall p\in\mathds{R}^n$ para cierto $c\geq 1$. Consideramos la variable aleatoria $M$ y el vector aleatorio $X'$, definidos como sigue:
 $$M:=\inf\{k\in \mathds{N} / U_k\leq \frac{f(Y_k)}{c g(Y_k)}\} $$
 $$X':=Y_M$$
@@ -854,7 +856,7 @@ donde se ha usado que, dado $y\in\mathds{R}^n$, $f(\cdot/y)$ es una función de 
 
 \end{proof}
 
-Y llegamos al teorema clave que nos permitirá demostrar que el método de Metropolis converge.
+Y llegamos al teorema clave que nos permitirá demostrar que el método de Metropolis converge (ver demostración en \cite{Roberts2004}).
 
 \begin{teorema}\label{teoMetro}
 Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathcal{D})$. Si $\mathcal{D}$ es generada por un conjunto numerable y $\{X_n\}_{n\in \mathds{N}_0}$ es $\Phi$-irreducible, aperiódico y tiene una distribución estacionaria $\pi$. Entonces:
@@ -911,38 +913,53 @@ En cuanto a su aplicación en renderización, el método de Metropolis puede usa
 Habrá ocasiones en que nos resulte costoso generar muestras de un vector aleatorio $Y$, pero exista una función $g$ biyectiva y diferenciable tal que $Y=g(X)$, con $X$ fácilmente simulable. Entonces podremos generar muestras que sigan la distribución de $Y$ aplicando un cambio de variable, de la manera en que se especifica en la siguiente proposición.
 
 \begin{proposicion}
-Sea $(\Gamma,\mathcal{A}, P)$ un espacio probabilístico, y sean $X$, $Y$ dos vectores aleatorios continuos definido sobre $(\Gamma,\mathcal{A}, P)$, con valores en $E_X$, $E_Y$ respectivamente. Sea $f_X$ la función de densidad de $X$, y sea $g$ una función biyectiva y diferenciable tal que $Y=g(X)$. Entonces la función de densidad de $Y$ cumple que:
-$$f_Y(y) = f_x(g^{-1}(y))|J_g(y)|\text{, }\forall y\in E_Y$$
+Sea $(\Gamma,\mathcal{A}, P)$ un espacio probabilístico, y sean $X$, $Y$ dos vectores aleatorios continuos definido sobre $(\Gamma,\mathcal{A}, P)$, con valores en $E_X$, $E_Y$ respectivamente. Sea $f_Y$ la función de densidad de $X$, y sea $g$ una función biyectiva y diferenciable tal que $Y=g(X)$. Entonces la función de densidad de $X$ cumple que:
+$$f_X(x) = f_Y(g(x))|det(J_g(x))|\text{, }\forall x\in E_X$$
 
-donde $|J_g(y)|$ denota al valor absoluto del determinante del jacobiano de $g$ en $y$.
+donde $|det(J_g(x))|$ denota al valor absoluto del determinante del jacobiano de $g$ en $x$.
 \end{proposicion}
 
-Detallaremos ahora una transformación que tiene gran importancia en renderización. Recordemos que notamos por $\pi$ a la proyección sobre la esfera unidad $\mathds{S}^2$. En el contexto de la proposición \ref{ToArea}, consideremos un vector aleatorio $\omega$ con valores en la porción de la esfera $\pi(C)$. Claramente, en dicho contexto, la función $\pi$ restringida a $C$, $\pi|_C$, es una biyección entre la superficie $C$ y la porción de la esfera $\pi(C)$. Supongamos que conocemos la función de densidad de $\omega$, $f_{\omega}$, y que queremos tomar muestras en $C$ siguiendo la distribución de $X:=(\pi|_C)^{-1}(\omega)$. Entonces tenemos que, dado $A\subseteq C$:
+Detallaremos ahora dos transformaciones que tienen gran importancia en renderización. Recordemos que notamos por $\pi$ a la proyección sobre la esfera unidad $\mathds{S}^2$. En el contexto de la proposición \ref{ToArea}, consideremos un vector aleatorio $\omega$ con valores en la porción de la esfera $\pi(C)$. Claramente, en dicho contexto, la función $\pi$ restringida a $C$, $\pi|_C$, es una biyección entre la superficie $C$ y la porción de la esfera $\pi(C)$. Supongamos que conocemos la función de densidad de $\omega$, $f_{\omega}$, y que queremos tomar muestras en $C$ siguiendo la distribución de $X:=(\pi|_C)^{-1}(\omega)$. Entonces tenemos que, dado $A\subseteq C$:
 \begin{align*}
 P(\omega\in \pi(A)) &= \int_{\pi(A)}f_{\omega}(s)\text{ }d\mu(s) = \int _A f_{\omega}(\pi(x)) \frac{x}{\|x\|^3} \text{ }dS \\
-&= \int _A f_{\omega}(\pi(x)) \frac{x\cdot n(x)}{\|x\|^3} \text{ }dS = \int_A f_{\omega}(\pi(x)) \frac{cos(\theta(x))}{\|x\|^2} \text{ }dS\\
+&= \int _A f_{\omega}(\pi(x)) \frac{x\cdot n(x)}{\|x\|^3} \text{ }dS = \int_A f_{\omega}(\pi(x)) \frac{cos(x,n(x))}{\|x\|^2} \text{ }dS\\
 &= P(X\in A)
 \end{align*}
 
-donde $n(x)$ es la normal a la superficie en el punto $x$, y $\theta(x)$ es el ángulo formado por la normal a la superficie en $x$ y el vector $x$. Por tanto concluimos que $f_X(x) = f_{\omega}(\pi(x))\frac{cos(\theta(x))}{\|x\|^2}$. A veces simplificaremos la notación escribiendo:
+donde $n(x)$ es la normal a la superficie en el punto $x$, y $cos(x,n(x))$ es el coseno del ángulo formado por la normal a la superficie en $x$ y el vector $x$. Por tanto concluimos que: 
 \begin{equation}\label{cambioArea}
-f_X(x) = f_{\omega}(\pi(x))\frac{cos\theta}{r^2}
+f_X(x) = f_{\omega}(\pi(x))\frac{cos(x,n(x))}{\|x\|^2}
 \end{equation}
 
+Por otro lado, consideremos la proyección sobre el plano $XY$ del hemisferio superior de la esfera unidad centrada en el origen, $\rho:\mathcal{H}^2\rightarrow \mathds{R}^3$, con:
+\begin{equation}\label{proyeccionAnguloSolido}
+\rho(x,y,z) = (x,y,0)\text{, }\forall (x,y,z)\in\mathcal{H}^2
+\end{equation}
+
+Notar que esta proyección depende del sistema de referencia usado. Sea $\mathds{D}$ el disco unidad con centro el origen contenido en el plano $XY$. Sea $A\subseteq\mathcal{H}^2$ un conjunto medible, entonces es fácil demostrar que se cumple que dada una función $g:\mathds{D}\rightarrow \mathds{R}_0^+$ medible:
+$$\int_A g(\rho(\omega)) \cos(\omega, (0,0,1))d\mu(\omega) = \int_{\rho(A)} g dS$$
+
+Consideremos ahora un vector aleatorio $X$ con valores en $\mathds{D}$. Claramente la función $\rho$ es una biyección entre el hemisferio $\mathcal{H}^2$ y el disco $\mathds{D}$. Supongamos que conocemos la función de densidad de $X$, $f_X$, y que queremos conocer la distribución de $\omega:=(\rho^{-1}(X)$. Entonces tenemos que, por la igualdad anterior:
+\begin{equation}\label{cambioProyectado}
+f_{\omega}(\omega) = f_{X}(\rho(\omega)) \cos(\omega, (0,0,1))
+\end{equation}
+
+Notar que dado que trabajamos en un espacio afín, la definición de $\rho$ y las igualdades anteriores dependen del sistema de referencia usado.
+
 \section{Métodos para reducir la varianza}
-En esta sección presentaremos tres métodos que nos permiten reducir la varianza del estimador de Monte Carlo.
+En esta sección presentaremos tres métodos que nos permiten reducir la varianza del estimador de Monte Carlo, los cuales están recogidos en \cite{Veach97}.
 
-\subsection{Muestreo de importancia}
+\subsection{Muestreo de importancia}\label{MI}
 
-El muestreo de importancia se basa en una idea bastante sencilla. Sea $X$ un vector aleatorio, supongamos que queremos aproximar $E[g(X)]$ para una función medible $g$. Supongamos que $X$ es continuo y tiene función de densidad $f_X$. Sea $Y$ otro vector aleatorio con función de densidad $f_Y$ estrictamente positiva. Entonces vemos que:
+El muestreo de importancia se basa en una idea bastante sencilla. Sea $X$ un vector aleatorio, supongamos que queremos aproximar $E[g(X)]$ para una función medible $g$ con valores en $\mathds{R}$. Supongamos que $X$ es continuo y tiene función de densidad $f_X$. Sea $Y$ otro vector aleatorio con función de densidad $f_Y$ estrictamente positiva. Entonces vemos que:
 $$E[g(X)]=\int g(x)f_X(x)dx = \int \frac{g(x)}{f_Y(x)}f_Y(x)f_X(x)dx = E[\frac{g(Y)}{f_Y(Y)}f_X(Y)]$$
 
 Consideramos la variable aleatoria $Z:=\frac{g(Y)}{f_Y(Y)}f_Y(Y)$. Entonces:
 $$\Var(Z) = \int \frac{g(x)^2}{f_Y(x)}f_X(x)^2dx - (E[g(X)])^2$$
 
-El muestreo de importancia consiste en buscar una función de densidad $f_Y$ muestreable tal que la varianza de $Z$ sea considerablemente más pequeña que la de $g(X)$. En ese caso, será preferible muestrear la variable aleatoria $Y$ y aproximar $E[Z]$ con el estimador Monte Carlo, ya que, como vimos, la varianza del estimador Monte Carlo es proporcional a la varianza de la función cuya esperanza aproxima. Al reducir la varianza del estimador, se requerirán menos simulaciones para acercarse al valor buscado.
+El muestreo de importancia consiste en buscar una función de densidad $f_Y$ muestreable tal que la varianza de $Z$ sea considerablemente más pequeña que la de $g(X)$. Teniendo en cuenta la igualdad anterior, la varianza de $Z$ será menor que la de $g(X)$ cuando $E[Z^2]$ sea menor que $E[g(X)^2]$. En ese caso, será preferible muestrear la variable aleatoria $Y$ y aproximar $E[Z]$ con el estimador Monte Carlo, ya que, como vimos, la varianza del estimador Monte Carlo es proporcional a la varianza de la función cuya esperanza aproxima. Al reducir la varianza del estimador, se requerirán menos simulaciones para acercarse al valor buscado.
 
-Como ya se mencionó al final del capítulo anterior, habrá situaciones en las que en vez de la esperanza de una función queramos calcular su integral. Supongamos que queremos calcular la integral de una función $h$, y sea $X$ una variable aleatoria tal que $f_X(x)>0$ para todo $x$ tal que $|h(x)|>0$. Tomando $g = \frac{h}{f_X}$, podemos aproximar la integral de $h$ aplicando el estimador Monte Carlo a la función $g$. El muestreo de importancia en este caso se reduce a elegir la variable $X$ de tal manera que la varianza de $g(X)$ sea baja, y esto se consigue mediante funciones de densidad que asignen mayores probabilidades a regiones donde $h$ tome valores altos.
+Como ya se mencionó al final del capítulo anterior, habrá situaciones en las que en vez de la esperanza de una función queramos calcular su integral. Supongamos que queremos calcular la integral de una función $h$, y sea $X$ una variable aleatoria tal que $f_X(x)>0$ para todo $x$ tal que $|h(x)|>0$. Tomando $g = \frac{h}{f_X}$, podemos aproximar la integral de $h$ aplicando el estimador Monte Carlo a la función $g$. El muestreo de importancia en este caso se reduce a elegir la variable $X$ de tal manera que la esperanza de $g$ al cuadrado, $E[g(X)^2]= \int \frac{h(x)^2}{f_X(x)}dx$, sea baja, y esto se consigue mediante funciones de densidad que asignen mayores probabilidades a regiones donde $h$ tome valores altos.
 
 \subsection{Estratificación o muestreo estratificado}
 
@@ -955,7 +972,7 @@ $$F = \sum_{i=1}^N v_i\frac{1}{n_i}\sum_{j=1}^{n_i}f(X_{i,j})$$
 donde $v_i$ es el volumen fraccional del estrato $i$ ($\sum v_i=1$, $v_i\in (0,1]$), y $X_{i,j}$ es la $j$-ésima muestra independiente tomada siguiendo la función de densidad $p_i$. Mediante una serie de derivaciones sencillas, suponiendo que $n_i = v_i M$ donde $M$ es el número total de muestras, puede verse que:
 $$\Var(F) = \frac{1}{N}\sum v_i\sigma_i^2 $$
 
-donde $\sigma_i^2$ es la varianza de $f$ en $\Lambda_i$. La varianza del estimador tomando $M$ muestras sin estratificación cumple que:
+donde $\sigma_i^2$ es la varianza de $f$ en $\Lambda_i$. La varianza del estimador tomando $M$ muestras sin estratificación cumple que (ver demostración en \cite{Veach97}):
 $$\Var(F_M) = \frac{1}{M}[\sum v_i\sigma_i^2 + \sum v_i(\mu_i-I)^2]$$
 
 donde $\mu_i$ es la esperanza de $f$ en $\Lambda_i$, e $I$ es la esperanza de $f$ en el dominio completo. Dado que la suma de la derecha es no negativa, deducimos que la estratificación nunca incrementa la varianza. De hecho la suma de la derecha solo valdrá $0$ cuando la función $f$ tenga la misma media en todos los estratos. La reducción en la varianza que produce este método viene del hecho de que impide que todas las muestras se acumulen en una región y permite muestrear el espacio de estados completo.

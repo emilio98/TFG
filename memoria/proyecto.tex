@@ -13,9 +13,11 @@
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{enumitem} 
-\usepackage{hyperref}
+\usepackage[linktocpage]{hyperref}
 \usepackage{caption}
-\usepackage{subcaption} 
+\usepackage{subcaption}
+
+\hypersetup{colorlinks = true, linkcolor = blue, citecolor=cyan}
 
 \usepackage{cite}
 %\addbibresource{./bibliografia/bibliografia.bib}
@@ -154,12 +156,11 @@ pdfproducer = {pdflatex}
 	frame=single,
 	backgroundcolor=\color{gray30},
 	language=C++,
-	numbers=left
    }
 
  
 \lstdefinestyle{Consola}
-   {basicstyle=\scriptsize\bf\ttfamily,
+   {basicstyle=\normalsize\bf\ttfamily,
     backgroundcolor=\color{gray30},
     frame=single,
     numbers=none

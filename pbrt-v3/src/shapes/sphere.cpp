@@ -252,6 +252,7 @@ Interaction Sphere::Sample(const Interaction &ref, const Point2f &u,
         return intr;
     }
 
+
     if(samplingMode == 1 || !ref.IsSurfaceInteraction()){
         // Sample sphere uniformly inside subtended cone
 
@@ -301,16 +302,14 @@ Interaction Sphere::Sample(const Interaction &ref, const Point2f &u,
 
         return it;
     }else{
-        //Area preserving parametrization, parallel map.
-        Vector3<double> x,y,z,c;
-        Vector3f cF = pCenter-pOrigin;
-        c = Vector3<double>(cF.x, cF.y, cF.z);
+        //Area preserving parametrization
+        Vector3f x,y,z,c;
+        double invNc = 1 / (pCenter-pOrigin).Length();
 
-        double invNc = 1 / c.Length();
-        c = invNc * c;
+        c = invNc * (pCenter-pOrigin);
 
         const SurfaceInteraction &isect = (const SurfaceInteraction &)ref;
-        z = Vector3<double>(isect.shading.n.x, isect.shading.n.y, isect.shading.n.z);
+        z = Vector3f(isect.shading.n.x, isect.shading.n.y, isect.shading.n.z);
         
         y = Cross(z, c);
 
@@ -321,32 +320,37 @@ Interaction Sphere::Sample(const Interaction &ref, const Point2f &u,
             x = Cross(y, z);
         }
 
-
         double alpha = std::asin(radius * invNc);
         double beta = std::asin(Dot(z, c));
+
+        if(std::isnan(alpha) || std::isnan(beta) || std::isinf(alpha) || std::isinf(beta)){
+            *pdf = 0;
+            return ref;
+        }
 
         if(beta<0){
             z *= -1;
             beta *= -1;
         }
 
+        Float cosalpha = std::cos(alpha);
+        Float cosbeta = std::cos(beta);
+
         double ay = std::sin(alpha), ax = ay * std::sin(beta);
-        double xe = std::cos(alpha) * std::cos(beta);
+        double xe = cosalpha * cosbeta;
         // 1 = Only ellipse, 2 = Ellipse + Lune, 3 = Only Lune
-        int typeOfProyectedCap;
+        int typeOfProjectedCap;
         
         //Total area of the cap projection, Apay for sampled hemisphere,
         //Apayo for the other hemisphere.
         double Apay, ApayO;
 
-        //The vector sampled, on the sphere of directions (object coordinates)
-        Vector3f res;
-
         double coswi, u0;
         double yl = 0, xl = 0;
 
         if(beta < alpha){
-            xl = (ay * ay * xe) / (ay * ay - ax * ax);
+            xl = cosalpha / cosbeta;
+
             yl = std::sqrt(1 - xl * xl);
             double Apcyl = I(yl,1) - xe*yl, Apeyl = ax*ay*I(yl/ay, 1);
             
@@ -355,70 +359,120 @@ Interaction Sphere::Sample(const Interaction &ref, const Point2f &u,
 
             u0 = (Apay + ApayO) * u[0];
             if(u0<Apay){
-                typeOfProyectedCap = 2;
+                typeOfProjectedCap = 2;
                 u0 = std::min(u0/Apay, 1.0);
             }else{
-                typeOfProyectedCap = 3;
+                typeOfProjectedCap = 3;
                 u0 = std::min((u0-Apay)/ApayO, 1.0);
                 ApayO = Apay;
                 Apay = -Apeyl + Apcyl;
+                //std::cout << u0 << " \n";
             }
         }else{
-            typeOfProyectedCap = 1;
+            typeOfProjectedCap = 1;
             Apay = ay * ax * M_PI_2;
             ApayO = 0;
             u0 = u[0];
         }
 
-        if(samplingMode == 2){
-            double y1, x1;
-            double xmin, xmax;
-            
-            if(u0<0.5){
-                y1 = - Clamp(NR_spherePar(typeOfProyectedCap, 1e-16, (1-2*u0) * Apay, ax, ay, xe, yl), 0, ay);
-            }else{
-                y1 = Clamp(NR_spherePar(typeOfProyectedCap, 1e-16, (2*u0-1) * Apay, ax, ay, xe, yl), 0, yl);
-            }
+        Float y1, x1;
 
-            if(typeOfProyectedCap == 1 || y1>yl){
-                xmin = xe - 0.5*Ap1Derivative(ax,ay,y1);
-                xmax = xe + 0.5*Ap1Derivative(ax,ay,y1);
-            }else if(typeOfProyectedCap == 2){
-                xmin = xe - 0.5*Ap1Derivative(ax,ay,y1);
-                xmax = std::sqrt(1-y1*y1);
+        if(samplingMode == 2){
+            //Parallel map
+            double xmin, xmax;
+            double maxy = typeOfProjectedCap != 3 ? ay : yl;
+
+            if(u0<0.5){
+                y1 = - Clamp(NR_spherePar(typeOfProjectedCap, 1e-16, (1-2*u0) * Apay, ax, ay, xe, yl, (1-2*u0)*maxy), 0, maxy);
             }else{
-                xmin = xe + 0.5*Ap1Derivative(ax,ay,y1);
-                xmax = std::sqrt(1-y1*y1);
-                z*=-1;
+                y1 = Clamp(NR_spherePar(typeOfProjectedCap, 1e-16, (2*u0-1) * Apay, ax, ay, xe, yl, (2*u0-1)*maxy), 0, maxy);
             }
+            
+            xmin = xe + 0.5*Ap1Derivative(ax,ay,y1) * (typeOfProjectedCap != 3 ? -1 : 1);
+            xmax = (typeOfProjectedCap == 1 || y1>yl) ? 2*xe-xmin : std::sqrt(1-y1*y1);
+            
+            if(typeOfProjectedCap == 3)
+                z*=-1;
 
             x1 = xmin + u[1]*(xmax-xmin);
-            coswi = std::sqrt(1-x1*x1-y1*y1);
 
-            Vector3<double> a = x1* x + y1 * y +  coswi* z;
-
-            res = Vector3f(a.x, a.y, a.z);
         }else{
+            //Radial map
+            if(typeOfProjectedCap == 1){
+                double v1 = std::sqrt(u[0]), v2=2*M_PI*u[1];
+                x1 = xe + ax*v1*std::cos(v2);
+                y1 = ay*v1*std::sin(v2);
+            }else{
+                double rmin, rmax, phi1, r1;
+                double phil = std::atan(yl/(xl-xe));
+                double maxphi = typeOfProjectedCap != 3 ? M_PI : phil;
 
+                if(std::isnan(phil) || std::isinf(phil) || phil<0 || phil>M_PI_2){
+                    std::cout << phil<<"hola\n";
+                }
+
+                if(u0<0.5){
+                    phi1 = - Clamp(NR_sphereRad(typeOfProjectedCap, 1e-9, (1-2*u0) * Apay, ax, ay, xe, phil, beta, (1-2*u0) *maxphi), 0, maxphi);
+                }else{
+                    phi1 = Clamp(NR_sphereRad(typeOfProjectedCap, 1e-9, (2*u0-1) * Apay, ax, ay, xe, phil, beta,  (2*u0-1) *maxphi), 0,maxphi);
+                }
+
+                double sinphi1 = std::sin(phi1), cosphi1 = std::cos(phi1);
+
+                if(typeOfProjectedCap == 2){
+                    rmin = 0;
+                    if(phi1 > phil)
+                        rmax = rmax1(ax,std::cos(beta), sinphi1);
+                    else{
+                        rmax = rmax2(xe,sinphi1,cosphi1);
+	                }
+                }else{
+                    rmin = rmax1(ax, std::cos(beta), sinphi1);
+                    rmax = rmax2(xe, sinphi1, cosphi1);
+                    z*=-1;
+                }
+
+                r1 = std::sqrt((1-u[1])*rmin*rmin + u[1]*rmax*rmax );
+
+                x1 = xe+r1 * cosphi1;
+                y1 = r1 * sinphi1;
+            }
+            
+            //const PSCM::PSCMaps<Float> *map;
+
+
+            /*map->initialize(alpha,beta,true);
+
+            map->eval_map(u0,u[1], x1, y1);*/
         }
 
-        Ray ray = ref.SpawnRay(res);
+        coswi = std::sqrt(1-x1*x1-y1*y1);
+
+        if(std::isinf(x1)){
+            std::cout << Apay << " " << ApayO << " " << u0<< " " << u[0]<< "hola\n";
+        }
+
+        Vector3f mv= x1* x + y1 * y +  coswi* z;
+
+        Ray ray = ref.SpawnRay(mv);
         Float tHit;
         SurfaceInteraction isectLight;
         Intersect(ray, &tHit, &isectLight, false);
-        
-        Interaction it;
-        it.p = isectLight.p;
-        it.pError = isectLight.pError;
-        it.n = isectLight.n;
-        if (reverseOrientation) it.n *= -1;
-        *pdf = coswi / (2*(Apay + ApayO));
 
-        return it;
+        *pdf = coswi / (2*(Apay + ApayO));
+        
+        if (reverseOrientation) isectLight.n *= -1;
+
+        return isectLight;
     }
 }
 
 Float Sphere::Pdf(const Interaction &ref, const Vector3f &wi) const {
+    /*Ray ray = ref.SpawnRay(wi);
+    Float tHit;
+    SurfaceInteraction isectLight;
+    if (!Intersect(ray, &tHit, &isectLight, false)) return 0;*/
+
     Point3f pCenter = (*ObjectToWorld)(Point3f(0, 0, 0));
     // Return uniform PDF if point is inside sphere
     Point3f pOrigin =
@@ -446,16 +500,20 @@ Float Sphere::Pdf(const Interaction &ref, const Vector3f &wi) const {
 
         if(beta<0){
             beta = -beta;
+            //isect.shading.n *=-1;
         }
 
+        Float cosalpha = std::cos(alpha);
+        Float cosbeta = std::cos(beta);
+
         Float ay = std::sin(alpha), ax = ay * std::sin(beta);
-        Float xe = std::cos(alpha) * std::cos(beta);
+        Float xe = cosalpha * cosbeta;
 
         Float coswi = AbsDot(isect.shading.n, wi);
         Float yl = 0, xl = 0;
 
         if(beta < alpha){
-            xl = (ay * ay * xe) / (ay * ay - ax * ax);
+            xl = cosalpha / cosbeta;
             yl = std::sqrt(1 - xl * xl);
             Float Apcyl = I(yl,1) - xe*yl, Apeyl = ax*ay*I(yl/ay, 1);
             

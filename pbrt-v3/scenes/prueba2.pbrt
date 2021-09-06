@@ -4,7 +4,7 @@ LookAt 400 20 30   0 63 -110   0 0 1
 Camera "perspective" "float fov" [39]
 Film "image"  
 "integer xresolution" [800] "integer yresolution" [800]
-    "string filename" "prueba2.exr"
+    "string filename" "topng2.exr"
 
 # zoom in by feet
 # "integer xresolution" [1500] "integer yresolution" [1500]
@@ -19,9 +19,9 @@ WorldBegin
 AttributeBegin
 Material "matte" "color Kd" [0 0 0]
 Translate 300 40 8
-Rotate -120 0 1 0
-AreaLightSource "area" "color L" [2000 2000 2000] "integer nsamples" [5]
-Shape "sphere" "float radius" [4] "integer samplingMode" [2] 
+Rotate -90 0 1 0
+AreaLightSource "area" "color L" [2000 2000 2000] "integer nsamples" [1]
+Shape "disk" "float radius" [4] "integer samplingMode" [1] 
 AttributeEnd
 
 AttributeBegin

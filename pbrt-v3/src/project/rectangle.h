@@ -39,10 +39,13 @@ class Rectangle : public Shape {
     Interaction Sample(const Point2f &u, Float *pdf) const;
     Interaction Sample(const Interaction &ref, const Point2f &u,
                        Float *pdf) const;
+    Float Pdf(const Interaction &ref, const Vector3f &wi) const;
 
   private:
     // Rectangle Private Data
     const Float width, height;
+    //samplingMode=1: muestreo uniforme respecto al área
+    //samplingMode=2: muestreo uniforme respecto al ángulo sólido
     const int samplingMode;
 };
 

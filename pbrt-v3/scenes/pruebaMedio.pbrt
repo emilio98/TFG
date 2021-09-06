@@ -4,46 +4,60 @@ LookAt -12 8 18  0 1 1   0 1 0
 Camera "perspective" "float fov" [19.5]
 Film "image"  
 "integer xresolution" [1024] "integer yresolution" [1024]
-    "string filename" "sph20.png"
+    "string filename" "sph18.png"
 
 # zoom in by feet
 # "integer xresolution" [1500] "integer yresolution" [1500]
 #	"float cropwindow" [ .34 .49  .67 .8 ]
 
-Sampler "halton" "integer pixelsamples" [1]
+Sampler "halton" "integer pixelsamples" [9]
 
 #Integrator "path" "integer maxdepth" [ 3 ]
-Integrator "directlighting" 
+Integrator "volpath" "integer maxdepth" [ 2 ]
 
 WorldBegin
+MakeNamedMedium "gas" "string type" [ "homogeneous" ] "rgb sigma_s" [ 1.000000 1.000000 1.000000 ] "rgb sigma_a" [ 0.000000 0.000000 0.000000 ] "float scale" [ 1.000000 ] 
+
 	MakeNamedMaterial "Floor" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ] 
+	AttributeBegin
+		MediumInterface "" "gas"
 	NamedMaterial "Floor" 
 	Shape "trianglemesh" "integer indices" [ 0 1 2 0 2 3 ] "point P" [ -100 1.74846e-007 -100 -100 1.74846e-007 100 100 -1.74846e-007 100 100 -1.74846e-007 -100 ] "normal N" [ 4.37114e-008 1 1.91069e-015 4.37114e-008 1 1.91069e-015 4.37114e-008 1 1.91069e-015 4.37114e-008 1 1.91069e-015 ] "float uv" [ 0 0 1 0 1 1 0 1 ] 
+  AttributeEnd
+  
   MakeNamedMaterial "ShortBox" "string type" [ "matte" ] "rgb Kd" [ 0.725000 0.710000 0.680000 ]
+  
+  AttributeBegin
+		MediumInterface "" "gas"
   NamedMaterial "ShortBox" 
 	Shape "trianglemesh" "integer indices" [ 0 2 1 0 3 2 4 6 5 4 7 6 8 10 9 8 11 10 12 14 13 12 15 14 16 18 17 16 19 18 20 22 21 20 23 22 ] "point P" [ -0.0460751 0.6 0.573007 -0.0460751 -2.98023e-008 0.573007 0.124253 0 0.00310463 0.124253 0.6 0.00310463 0.533009 0 0.746079 0.533009 0.6 0.746079 0.703337 0.6 0.176177 0.703337 2.98023e-008 0.176177 0.533009 0.6 0.746079 -0.0460751 0.6 0.573007 0.124253 0.6 0.00310463 0.703337 0.6 0.176177 0.703337 2.98023e-008 0.176177 0.124253 0 0.00310463 -0.0460751 -2.98023e-008 0.573007 0.533009 0 0.746079 0.533009 0 0.746079 -0.0460751 -2.98023e-008 0.573007 -0.0460751 0.6 0.573007 0.533009 0.6 0.746079 0.703337 0.6 0.176177 0.124253 0.6 0.00310463 0.124253 0 0.00310463 0.703337 2.98023e-008 0.176177 ] "normal N" [ -0.958123 -4.18809e-008 -0.286357 -0.958123 -4.18809e-008 -0.286357 -0.958123 -4.18809e-008 -0.286357 -0.958123 -4.18809e-008 -0.286357 0.958123 4.18809e-008 0.286357 0.958123 4.18809e-008 0.286357 0.958123 4.18809e-008 0.286357 0.958123 4.18809e-008 0.286357 -4.37114e-008 1 -1.91069e-015 -4.37114e-008 1 -1.91069e-015 -4.37114e-008 1 -1.91069e-015 -4.37114e-008 1 -1.91069e-015 4.37114e-008 -1 1.91069e-015 4.37114e-008 -1 1.91069e-015 4.37114e-008 -1 1.91069e-015 4.37114e-008 -1 1.91069e-015 -0.286357 -1.25171e-008 0.958123 -0.286357 -1.25171e-008 0.958123 -0.286357 -1.25171e-008 0.958123 -0.286357 -1.25171e-008 0.958123 0.286357 1.25171e-008 -0.958123 0.286357 1.25171e-008 -0.958123 0.286357 1.25171e-008 -0.958123 0.286357 1.25171e-008 -0.958123 ] "float uv" [ 0 0 1 0 1 1 0 1 0 0 1 0 1 1 0 1 0 0 1 0 1 1 0 1 0 0 1 0 1 1 0 1 0 0 1 0 1 1 0 1 0 0 1 0 1 1 0 1 ]
+	AttributeEnd
 
   AttributeBegin
+  MediumInterface "" "gas"
     Material "matte" "color Kd" [0 0 0]
     Translate 1 1 5
     Rotate -150 0 1 0
     AreaLightSource "area" "rgb L" [ 255.000000 200.000000 100.000000 ]  "integer nsamples" [1]
-    #Shape "rectangle" "float height" [2] "float width" [2] "integer samplingMode" [2] 
+    Shape "rectangle" "float height" [0.7] "float width" [0.7] "integer samplingMode" [2] 
     #Shape "disk" "float radius" [0.35] "integer samplingMode" [1] 
-    Shape "sphere" "float radius" [0.35] "integer samplingMode" [2] 
+    #Shape "sphere" "float radius" [0.35] "integer samplingMode" [2] 
   AttributeEnd
 
   AttributeBegin
+  MediumInterface "" "gas"
     Translate 2 1.00001 0
     Shape "sphere" "float radius" [1] 
   AttributeEnd  
 
   AttributeBegin
+  MediumInterface "" "gas"
     Translate -3 1.00001 1.75
     Shape "sphere" "float radius" [1] 
   AttributeEnd 
 
   AttributeBegin
+  MediumInterface "" "gas"
     Translate 0 1.01 -2
     Rotate -150 0 1 0
     Shape "disk" "float radius" [8] 

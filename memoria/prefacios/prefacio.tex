@@ -34,12 +34,64 @@ Emilio José Hoyo Medina\\
 \end{center}
 
 %\vspace{0.7cm}
-\noindent{\textbf{Keywords}:  }\\
+\noindent{\textbf{Keywords}: ray-tracing, rendering equation, Monte Carlo method, sampling random variables.}\\
 
 \vspace{0.7cm}
 \noindent{\textbf{Abstract}}\\
+Photorealistic rendering is a type of rendering that use the principles of physics to model the behaviour of light. Most photorealistic renderers are based on the ray tracing algorithm. Ray tracing is an algorithm in which the color of each pixel in the final image is calculated by tracing rays from the camera into the scene, and calculating the amount of light traveling along it.  This algorithm was initially introduced by Whitted (\cite{Whitted}), and has gained relevance since then. It is used in areas such as animation and film production.
 
-Write here the abstract in English.
+In ray tracers, each time the camera generates a ray, in order to calculate the amount of light that travels along this ray, the first task is  to find the intersection of the ray with the scene, obtaining a point $P$. Then, the radiance reflected in the direction of the camera from $P$ is approximated. This reflected radiance is given by the rendering equation, a second-type Fredholm integral equation that describes the global radiance distribution in the scene. This equation in most cases cannot be solved analytically, so it must be approximated numerically.
+
+
+Monte Carlo methods are a very useful numerical approximation tool in this context. The aims of this methods are to solve one or both of the following problems:
+\begin{itemize} 
+\item There are Monte Carlo methods focused on sampling random variables following a given probability distribution that take values in a space E. 
+\item To use these generated samples to approximate the  expectation of a function (defined over E) under this distribution. Once the first problem has been solved, the second problem can be solved by using an estimator known as Monte Carlo estimator. 
+\end{itemize}
+
+The reason Monte Carlo methods are used instead of other numerical approximation algorithms in rendering is that their convergence ratio is independent of the dimensionality of the space sampled. That characteristic makes the Monte Carlo methods in several situations the only viable solution.\\
+
+\noindent{\textbf{Addressed problem and report description}}
+
+The addressed problem in this work can be divided into two sub-problems:
+\begin{itemize}
+\item To study the main Monte Carlo methods used in rendering, from a mathematical and formal approach.
+\item To study different ways to reduce  the variance of the Monte Carlo estimator, especially when it is used to approximate the rendering equation.
+\end{itemize}
+
+In order to address the first problem,  basic concepts related to stochastic processes have been needed, which have been acquired through the book \cite{Williams1991}.
+
+The main content of this report has been divided into two blocks, the first one focused on the mathematical theory behind Monte Carlo methods and its applications in ray tracing, and the other on the implementation of software in a ray tracer:
+\begin{enumerate}
+\item The first block aims to study the mathematical basis of the main Monte Carlo methods used in rendering, as well as to describe the two basic algorithms used to approximate the rendering equation: direct lighting and path tracing. These two algorithms are based on calculating an estimate of the integral of the equation through a Monte Carlo estimator.
+\item The second block aims to study and implement recent papers that describe random variable sampling methods that reduce the variance of the estimators used to approximate the rendering equation.
+\end{enumerate}
+
+The chapter \ref{MonteCarlo} begins by detailing the results and definitions related to stochastic processes that will be used in the rest of the chapter. Next we will detail the theorems and definitions that will end up leading us to a proof of the Strong Law of Large Numbers, a theorem that ensures the convergence of the Monte Carlo estimator when the number of samples taken tends to infinity. After this, the most well-known Monte Carlo methods for random variable sampling used in realistic renderers are detailed, being necessary to detail some aspects of the Markov processes for the explanation of the Metropolis method. Finally, three essential variance reduction methods in rendering are explained: Importance sampling, stratification and multiple importance sampling. Importance sampling is based on a good choice of the distribution that we sample when approximating an integral. Stratification is based on dividing the sampled space into stratum, and sampling each stratum separately. Multiple importance sampling solves the problem of combining different sampling methods in a single estimator.
+
+The chapter \ref{AproximacionRE} serves as a link between the first
+part and the second, and details from a formal point of view the two
+main approximation algorithms for the rendering equation based on Monte Carlo methods.  On one hand we have the direct lighting algorithm, which consists of taking samples only from the directions that point towards the light sources in the scene. Indirect lighting due to light reflection through the scene is not taken into account in this approach. On the other hand we have the path tracing algorithm, which generates random paths through the scene, taking into account the characteristics of the matter with which the path intersects.
+In this chapter we adquire the knowledge about the ray tracing algorithm
+necessary to understand the importance of sampling random variables 
+defined on the set of directions pointing towards
+a light source. This proccess is known as light sampling.
+
+
+The chapter \ref{MuestreoDirecto} details alternative area light sampling methods, detailing their advantages and disadvantages. Three recent area light sampling algorithms are discussed. The first is used for rectangular light sources, the second for disk-shaped light sources, and the third for spherical light sources. These algorithms will be implemented in an open source photorealistic renderer. pbrt has been selected for implementation because it has a freely available book, \cite{Pharr2016}, which explains both the mathematical theory behind the rendering systems and its practical implementation. Therefore, this book, in addition to being an important reference in the concepts that this work deals with, serves as documentation of the system used to implement the algorithms. Finally, software tests of the implementation will be carried out to show the results obtained.
+
+It is relevant to note that for the elaboration of this project a previous study of ray-tracing system has been required, since this was a rendering approach practically unknown to the author of this work. In the understanding of the ray tracing algorithm, in addition to pbrt, has been key \cite{Shirley2020RTW1}, \cite{Shirley2020RTW2} and \cite{Shirley2020RTW3}, three books that give an easy-to-understand introduction to ray tracing, detailing the development of a simple ray tracer.\\
+
+\noindent{\textbf{Conclusions}}
+
+The objectives of the work have been fulfilled in a satisfactory way, having acquired quite important general knowledge about photorealistic rendering, which goes beyond those detailed in this work, and which has aroused great interest in the author. The mathematical aspects treated based on stochastic processes have also been interesting.
+
+However, there are many more topics in this field to develop. The light sampling algorithms described in this work, while reducing the variance of the Monte Carlo estimator that approximates the rendering equation, they have their drawbacks. Many of them significantly increase the execution time required to generate an image, so possibilities for improvements in terms of efficiency could be analyzed. 
+
+Another way of improvement would be to try to find parameterizations of the projected solid angle associated with rectangular or disk-shaped light sources. It may also be interesting to investigate the parametrization of the solid angle or projected solid angle subtended by other geometric shapes.
+
+Moreover, the use and characteristics of other production renderers can be studied. Other forms of approximation of the rendering equation, such as bidirectional methods or the Metropolis light transport method, are still pending. An also very relevant aspect that we have overlooked is the behavior of light in environments other than vacuum. 
+
 
 \chapter*{}
 \thispagestyle{empty}
@@ -47,7 +99,7 @@ Write here the abstract in English.
 \noindent\rule[-1ex]{\textwidth}{2pt}\\[4.5ex]
 
 Yo, \textbf{Emilio José Hoyo Medina}, alumno de la titulación Doble grado en ingeniería informática y matemáticas de la \textbf{Escuela Técnica Superior
-de Ingenierías Informática y de Telecomunicación de la Universidad de Granada}, con DNI XXXXXXXXX, autorizo la
+de Ingenierías Informática y de Telecomunicación} y de la \textbf{Facultad de Ciencias} de la \textbf{Universidad de Granada}, con DNI XXXXXXXXX, autorizo la
 ubicación de la siguiente copia de mi Trabajo Fin de Grado en la biblioteca del centro para que pueda ser
 consultada por las personas que lo deseen.
 
@@ -58,7 +110,7 @@ consultada por las personas que lo deseen.
 \vspace{2cm}
 
 \begin{flushright}
-Granada a  de septiembre de 2021.
+Granada a 6 de septiembre de 2021.
 \end{flushright}
 
 
@@ -67,11 +119,11 @@ Granada a  de septiembre de 2021.
 
 \noindent\rule[-1ex]{\textwidth}{2pt}\\[4.5ex]
 
-D. \textbf{Nombre Apellido1 Apellido2 (tutor1)}, Profesor del Área de XXXX del Departamento YYYY de la Universidad de Granada.
+D. \textbf{Carlos Ureña Almagro}, Profesor del Departamento Lenguajes y Sistemas Informáticos de la Universidad de Granada.
 
 \vspace{0.5cm}
 
-D. \textbf{Nombre Apellido1 Apellido2 (tutor2)}, Profesor del Área de XXXX del Departamento YYYY de la Universidad de Granada.
+Dña. \textbf{María del Carmen Segovia García}, Profesora del Departamento Estadística e Investigación Operativa de la Universidad de Granada.
 
 
 \vspace{0.5cm}
@@ -80,13 +132,13 @@ D. \textbf{Nombre Apellido1 Apellido2 (tutor2)}, Profesor del Área de XXXX del 
 
 \vspace{0.5cm}
 
-Que el presente trabajo, titulado \textit{\textbf{Título del proyecto, Subtítulo del proyecto}},
-ha sido realizado bajo su supervisión por \textbf{Nombre Apellido1 Apellido2 (alumno)}, y autorizamos la defensa de dicho trabajo ante el tribunal
+Que el presente trabajo, titulado \textit{\textbf{Métodos de Monte Carlo de baja varianza para simulación numérica de iluminación global}},
+ha sido realizado bajo su supervisión por \textbf{Emilio José Hoyo Medina}, y autorizamos la defensa de dicho trabajo ante el tribunal
 que corresponda.
 
 \vspace{0.5cm}
 
-Y para que conste, expiden y firman el presente informe en Granada a X de mes de 201 .
+Y para que conste, expiden y firman el presente informe en Granada a 6 de septiembre de 2021.
 
 \vspace{1cm}
 
@@ -94,7 +146,7 @@ Y para que conste, expiden y firman el presente informe en Granada a X de mes de
 
 \vspace{5cm}
 
-\noindent \textbf{Nombre Apellido1 Apellido2 (tutor1) \ \ \ \ \ Nombre Apellido1 Apellido2 (tutor2)}
+\noindent \textbf{Carlos Ureña Almagro \ \ \ \ \ María del Carmen Segovia García}
 
 \chapter*{Agradecimientos}
 \thispagestyle{empty}
@@ -102,5 +154,7 @@ Y para que conste, expiden y firman el presente informe en Granada a X de mes de
        \vspace{1cm}
 
 
-Poner aquí agradecimientos...
+Muchas gracias a mis dos tutores, Mari Carmen y Carlos, por la ayuda durante la elaboración de este trabajo.
+
+Gracias a mi familia, amigos, y en especial gracias a Raquel, sin cuyo apoyo no habría podido llegar hasta aquí.
 

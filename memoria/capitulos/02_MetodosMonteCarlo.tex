@@ -277,7 +277,7 @@ Cuando presentamos el estimador de Monte Carlo, vimos que su esperanza es igual 
 
 
 \subsection{Tiempos de parada}
-En ocasiones querremos considerar martingalas o submartingalas en tiempos aleatorios, para lo cual se define un tipo de variables aleatorias con unas características muy útiles, llamadas \emph{tiempos de parada}.
+El concepto de \emph{tiempo de parada} proviene de los juegos de apuestas, y puede ser entendido como una regla que dice cuando el jugador debería dejar de apostar. Formalmente, un tiempo de parada es un tipo de variable aleatoria que toma valores en el espacio paramétrico de un proceso estocástico y que tiene unas características muy útiles.
 
 \begin{definicion}[Tiempo de parada de una filtración]
 Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$ una filtración de $\sigma$-álgebras, y sea $R$ una variable aleatoria definida sobre $(\Gamma , \mathcal{A}, P)$ y tomando valores en $\mathds{N}_0\cup \{+\infty \}$. Diremos que $R$ es un tiempo de parada para la filtración $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$ si se cumple que $R^{-1}(n)=\{R = n\} \in \mathscr{G}_n\text{, }\forall n\in \mathds{N}_0$. Es fácil ver que, por ser $\{\mathscr{G}_n\}_{n\in \mathds{N}_0}$ una filtración, las dos siguientes condiciones son equivalentes:
@@ -638,9 +638,7 @@ $$Y=\lim_{N\to +\infty}S_N = \lim_{N\to +\infty} \frac{X_1+\ldots +X_N}{N} = \li
 
 Por tanto $Y$ es $\sigma(X_k,X_{k+1},\ldots )$-medible por ser límite de funciones $\sigma(X_k,X_{k+1},\ldots )$-medibles. Dado que $k$ es arbitrario, se obtiene que $Y$ es $\sigma(X_k,X_{k+1},\ldots )$-medible, $\forall k \in \mathds{N}$, con lo que $Y$ es $\mathscr{T}$-medible. Deducimos usando el teorema \ref{Kolmog} que $Y$ es constante, y dado que al final del paso 3 comprobamos que $E[Y] = E[X_1]$, podemos concluir el resultado buscado:
 $$\lim_{N\to +\infty}S_N = Y = E[X_1] \text{, } c.s.\text{-}P$$
-
 \end{proof}
-
 Este teorema nos asegura la convergencia del estimador de Monte Carlo definido en (\ref{estMC}) cuando el número de muestras tiende a infinito. En efecto, sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico, sea $X:(\Gamma , \mathcal{A}, P)\rightarrow (E,\mathscr{B}_E)$ un vector aleatorio y sea $g:(E,\mathscr{B}_E)\rightarrow (\mathds{R},\mathscr{B})$ una función medible. Considerando $\{x^{(r)}\}_{r\in\mathds{N}}$ una sucesión de vectores aleatorios idénticamente distribuidos según la distribución de $X$ e independientes, entonces $\{g(x^{(r)})\}_{r\in\mathds{N}}$ es una sucesión de variables aleatorias idénticamente distribuidas según la distribución de $g(X)$ e independientes. La ley fuerte de los números grandes nos asegura por tanto que los estimadores:
 $$S_N = \frac{1}{N}\sum_{i=0}^N g(x^{(i)}) $$
 
@@ -648,7 +646,7 @@ convergen a $E[g(x^{(1)})] = E[g(X)]$ cuando $N$ tiende a infinito casi segurame
 
 \section{Métodos de Monte Carlo para muestreo de variables aleatorias}
 
-Hemos visto un estimador que nos permite aproximar la esperanza de una función bajo una distribución a partir de muestras independientes siguiendo dicha distribución, que es uno de los objetivos de los métodos de Monte Carlo. En esta sección estudiaremos diversos métodos que nos permiten abarcar el otro objetivo, tomar muestras que sigan una distribución de probabilidad. Notar que hay ciertas distribuciones que son fácilmente simuladas computacionalmente, como por ejemplo la distribución uniforme unidimensional, cuyas muestras se obtienen a partir de un generador de números pseudoaleatorios.
+Hemos visto un estimador que nos permite aproximar la esperanza de una función bajo una distribución a partir de muestras independientes siguiendo dicha distribución, que es uno de los objetivos de los métodos de Monte Carlo. En esta sección estudiaremos los métodos más utilizados en renderización que nos permiten abarcar el otro objetivo, tomar muestras que sigan una distribución de probabilidad. Notar que hay ciertas distribuciones que son fácilmente simuladas computacionalmente, como por ejemplo la distribución uniforme unidimensional, cuyas muestras se obtienen a partir de un generador de números pseudoaleatorios.
 
 \subsection{Método de inversión}
 
@@ -727,7 +725,7 @@ De lo que deducimos que $M$ y $X'=Y_M$ son independientes, que la distribución 
 
 \end{proof}
 
-Supongamos que sabemos evaluar dos funciones continuas $f^*:\mathds{R}^n\rightarrow \mathds{R}_0^+$ $g^*:\mathds{R}^n\rightarrow \mathds{R}_0^+$, que $f*(p)\leq c' g*(p)$, $\forall p\in\mathds{R}^n$ para cierto $c'\geq 1$, que se pueden tomar muestras tales que su función de densidad es $g = \frac{g^*}{\int_{\mathds{R}^n}g^*(s)ds} $ y que queremos generar muestras cuya función de densidad sea $f = \frac{f^*}{\int_{\mathds{R}^n}f^*(s)ds}$. Una ventaja de este método es que se puede aplicar a las funciones $g*$ y $f*$ sin necesidad de calcular su integral, considerando la constante $c'$. En efecto, basta tomar $f$, $g$, y $c=\frac{c'\int_{\mathds{R}^n}g^*(s)ds}{\int_{\mathds{R}^n}f^*(s)ds}$ para ver que el método sigue siendo válido.
+Supongamos que sabemos evaluar dos funciones continuas $f^*:\mathds{R}^n\rightarrow \mathds{R}_0^+$ $g^*:\mathds{R}^n\rightarrow \mathds{R}_0^+$, que $f^*(p)\leq c' g^*(p)$, $\forall p\in\mathds{R}^n$ para cierto $c'\geq 1$, que se pueden tomar muestras tales que su función de densidad es $g = \frac{g^*}{\int_{\mathds{R}^n}g^*(s)ds} $ y que queremos generar muestras cuya función de densidad sea $f = \frac{f^*}{\int_{\mathds{R}^n}f^*(s)ds}$. Una ventaja de este método es que se puede aplicar a las funciones $g^*$ y $f^*$ sin necesidad de calcular su integral, considerando la constante $c'$. En efecto, basta tomar $f$, $g$, y $c=\frac{c'\int_{\mathds{R}^n}g^*(s)ds}{\int_{\mathds{R}^n}f^*(s)ds}$ para ver que el método sigue siendo válido.
 
 Por otro lado, uno de los problemas de este algoritmo que nos encontramos al aplicarlo en múltiples dimensiones es hallar la constante $c$. Además al aumentar la dimensionalidad usualmente la constante será grande, con lo que el ratio de aceptación $\frac{1}{c}$ será bajo, y rechazaremos muchas muestras antes de encontrar una válida. Otro problema de este método es que necesitamos una función de densidad $g$ que, multiplicada por una constante, sea mayor o igual que la función objetivo, y esto no siempre será posible.
 
@@ -798,8 +796,8 @@ $$\forall n \in \mathds{N}\text{, }\forall B\in \mathscr{B}_E \text{, }\forall x
 \end{definicion}
 
 \begin{definicion}[Distribución estacionaria]
-Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Una distribución $\pi$ sobre $(E,\mathscr{B}_E)$ se dice que es estacionaria frente a $P(x,B)$ si cumple que:
-$$\forall B\in\mathds{B}_E\text{, } \pi(B) = \int_E P(x,B) \pi(dx)$$
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Una distribución $\eta$ sobre $(E,\mathscr{B}_E)$ se dice que es estacionaria frente a $P(x,B)$ si cumple que:
+$$\forall B\in\mathds{B}_E\text{, } \eta(B) = \int_E P(x,B) \eta(dx)$$
 
 Una función de distribución $G$ sobre $\mathds{R}^n$ es estacionaria frente a la función de distribución de transición $F(y/x)$ si cumple que:
 $$\forall y\in\mathds{R}^n\text{, } G(y) = \int_E F(y/x) dG(x)$$
@@ -813,10 +811,10 @@ Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \
 \end{definicion}
 
 \begin{definicion}[Proceso de Markov aperiódico]
-Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Supongamos que $\pi$ es una distribución estacionaria. Se dice que $\{X_n\}_{n\in \mathds{N}_0}$ es aperiódico si no existe $d\geq 2$ y conjuntos disjuntos $S_1,\ldots ,S_d \in \mathscr{B}_E$ cumpliendo que:
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathscr{B}_E)$. Supongamos que $\eta$ es una distribución estacionaria. Se dice que $\{X_n\}_{n\in \mathds{N}_0}$ es aperiódico si no existe $d\geq 2$ y conjuntos disjuntos $S_1,\ldots ,S_d \in \mathscr{B}_E$ cumpliendo que:
 $$P(x,S_{i+1}) = 1\text{, }\forall x\in S_i\text{, }\forall i\in \{1,\ldots ,d-1\} $$
 $$P(x,S_1) = 1\text{, }\forall x\in S_d$$
-$$\pi(S_1)>0$$
+$$\eta(S_1)>0$$
 \end{definicion}
 
 \begin{definicion}
@@ -859,8 +857,8 @@ donde se ha usado que, dado $y\in\mathds{R}^n$, $f(\cdot/y)$ es una función de 
 Y llegamos al teorema clave que nos permitirá demostrar que el método de Metropolis converge (ver demostración en \cite{Roberts2004}).
 
 \begin{teorema}\label{teoMetro}
-Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathcal{D})$. Si $\mathcal{D}$ es generada por un conjunto numerable y $\{X_n\}_{n\in \mathds{N}_0}$ es $\Phi$-irreducible, aperiódico y tiene una distribución estacionaria $\pi$. Entonces:
-$$\forall B\in\mathscr{B}_E \text{, } \lim_{n\to +\infty}P(X_n\in B) = \pi(B)$$
+Sea $(\Gamma , \mathcal{A}, P)$ un espacio probabilístico. Sea $\{X_n\}_{n\in \mathds{N}_0}$ un proceso de Markov homogéneo en tiempo discreto definido sobre $(\Gamma, \mathcal{A}, P)$ con valores en $(E,\mathcal{D})$. Si $\mathcal{D}$ es generada por un conjunto numerable y $\{X_n\}_{n\in \mathds{N}_0}$ es $\Phi$-irreducible, aperiódico y tiene una distribución estacionaria $\eta$. Entonces:
+$$\forall B\in\mathscr{B}_E \text{, } \lim_{n\to +\infty}P(X_n\in B) = \eta(B)$$
 \end{teorema}
 
 
@@ -947,7 +945,7 @@ f_{\omega}(\omega) = f_{X}(\rho(\omega)) \cos(\omega, (0,0,1))
 Notar que dado que trabajamos en un espacio afín, la definición de $\rho$ y las igualdades anteriores dependen del sistema de referencia usado.
 
 \section{Métodos para reducir la varianza}
-En esta sección presentaremos tres métodos que nos permiten reducir la varianza del estimador de Monte Carlo, los cuales están recogidos en \cite{Veach97}.
+En esta sección presentaremos tres métodos que nos permiten reducir la varianza del estimador de Monte Carlo, los cuales están recogidos en \cite{Veach97}. Estos tres métodos tienen una gran importancia en renderización.
 
 \subsection{Muestreo de importancia}\label{MI}
 

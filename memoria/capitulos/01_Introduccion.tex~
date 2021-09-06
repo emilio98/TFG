@@ -22,7 +22,8 @@ Si queremos generar una imagen realista necesitamos simular el funcionamiento de
   \end{minipage}}
   \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
     \abovecaptionskip=0pt
-    \caption{Simulación de la cámara estenopeica. Imagen extraída de \cite{Pharr2016}}
+    \caption{Simulación de la cámara estenopeica.}
+    \source{\cite{Pharr2016}}
   \end{minipage}}
 \end{figure}
 
@@ -58,7 +59,8 @@ Dónde notamos por $\mathds{S}^2$ a la esfera unidad de $\mathds{R}^3$. De esta 
   \end{minipage}}
   \fbox{\begin{minipage}{\dimexpr \textwidth-2\fboxsep-2\fboxrule}
     \abovecaptionskip=0pt
-    \caption{Reflexión de la luz. Imagen extraída de \cite{Pharr2016}}
+    \caption{Reflexión de la luz}
+    \source{\cite{Pharr2016}}
   \end{minipage}}
 \end{figure}
 

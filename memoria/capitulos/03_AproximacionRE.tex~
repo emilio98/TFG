@@ -1,19 +1,20 @@
 \titlespacing*{\subsection}
   {0pt}{2\baselineskip}{\baselineskip}
 
-\chapter{Aproximación de la ecuación de renderización}
+\chapter{Aproximación de la ecuación de renderización}\label{AproximacionRE}
 
 En este capítulo describiremos dos posibles formas de aproximar la ecuación de renderización descrita en \ref{renderingEquation}.
 
 \section{Iluminación directa}
-Se trata de la aproximación más sencilla de la ecuación de renderización, ya que no tiene en cuenta la iluminación indirecta. Una vez se calcula la intersección del rayo de cámara con la escena, desde ese punto se muestrean todas las fuentes de luz de la escena. La mayoría de fuentes de luz serán fuentes de luz de área, ya que son las fuentes de luz que más se aproximan a las fuentes de luz reales.
+Se trata del método de aproximación más sencillo de la ecuación de renderización, ya que no tiene en cuenta la iluminación indirecta. Una vez se calcula la intersección del rayo de cámara con la escena, desde ese punto se muestrean todas las fuentes de luz de la escena. Por tanto se estima la radiancia en un punto $P\in\mathds{R}^3$ y en una dirección $\omega_o\in\mathds{S}^2$ como:
+$$L(P,\omega_o) = \sum_{F\in\mathscr{F}}\int_{\pi_P(F)} f(P,\omega_o, \omega_i)L_e(P,\omega_i)|n_P\cdot \omega_i|d\mu(\omega_i),$$
 
-El método más sencillo para muestrear una fuente de luz de área es generar una muestra que siga una distribución uniforme en toda su superficie y transformar la función de densidad, que será constante, para obtener la función de densidad respecto al ángulo sólido, en virtud de la ecuación \ref{cambioArea}. Sin embargo esta forma de muestreo puede llegar a implicar alta varianza dependiendo de la escena. En el siguiente capítulo veremos diferentes formas de muestrear fuentes de luz en el caso de ciertas figuras geométricas.
+donde $\mathscr{F}$ es el conjunto de todas las fuentes de luz de la escena, $\pi_P$ es la proyección sobre la esfera unidad con centro $P$ y $n_P$ es la normal a la superficie en $P$. La mayoría de fuentes de luz serán fuentes de luz de área, ya que son las fuentes de luz que más se aproximan a las fuentes de luz reales. El método más sencillo para muestrear una fuente de luz de área es generar una muestra que siga una distribución uniforme en toda su superficie y transformar la función de densidad, que será constante, para obtener la función de densidad respecto al ángulo sólido, en virtud de la ecuación \ref{cambioArea}. Sin embargo esta forma de muestreo puede llegar a implicar alta varianza dependiendo de la escena, especialmente en puntos que están muy cerca de la fuente de luz muestreada. En el siguiente capítulo veremos diferentes formas de muestrear fuentes de luz en el caso de ciertas figuras geométricas.
 
-Si solo se muestrean direcciones correspondientes a fuentes de luz, aunque la radiancia en esas direcciones sea alta, puede que la función BSDF tome valores bajos en esas direcciones y por tanto nos lleve a una mala aproximación del color en el punto. Es por esto que se suele aplicar muestreo de importancia múltiple en este tipo de algoritmo, muestreando también la función BSDF. Un ray tracer siempre deberá ser capaz de generar muestras siguiendo la distribución de los diferentes tipos de BSDF que permite. Además debe tenerse en cuenta si el punto que está siendo sombreado pertenece a una superficie puramente especular, en cuyo caso se trazan rayos recursivamente en las correspondientes direcciones, fijando un número máximo de rayos trazados.
+Si solo se muestrean direcciones correspondientes a fuentes de luz, aunque la radiancia emitida en esas direcciones sea alta, puede que la función BSDF tome valores bajos en esas direcciones y por tanto nos lleve a una mala aproximación del color en el punto. Es por esto que se suele aplicar muestreo de importancia múltiple en este tipo de algoritmo, muestreando también la función BSDF. Un ray tracer siempre deberá ser capaz de generar muestras siguiendo la distribución de los diferentes tipos de BSDF que permite. Además debe tenerse en cuenta si el punto que está siendo sombreado pertenece a una superficie puramente especular, en cuyo caso se trazan rayos recursivamente en las correspondientes direcciones, fijando un número máximo de rayos trazados.
 
 \section{Path-Tracing}
-Antes de estudiar el enfoque tomado en este algoritmo y su justificación, presentaremos una serie de definiciones y resultados previos.
+Antes de estudiar el enfoque tomado en este algoritmo y su justificación, presentaremos una serie de definiciones y resultados previos, recogidos en \cite{Fredholm}.
 
 \begin{definicion}[Operador lineal]
   Sean $S$, $M$ dos espacios normados sobre el mismo cuerpo $\mathds{K}$, un operador lineal de $S$ en $M$ es una aplicación $T:S\rightarrow M$ cumpliendo que:
@@ -59,7 +60,7 @@ Entonces $\{u_n\}_{n\in\mathds{N}_0}$ convergerá al único punto fijo de $T$, $
 
   \end{proof}
 
-Ya podemos desarrollar el enfoque tomado en este algoritmo. Consideramos la función $t:\mathds{R}^3\times \mathds{S}^2\rightarrow \mathds{R}^3$ que asigna a cada rayo (definido por su punto inicial y su dirección) su intersección más cercana con la escena. Es fácil ver que entonces $L_i(p,\omega) = L_s(t(p,\omega), -\omega)$, $\forall p\in\mathds{R}^3$, $\forall \omega\in\mathds{S}^2$. Por tanto, notando $L=L_s$ por comodidad, y fijando $p\in\mathds{R}^3$, podemos reescribir la ecuación de la siguiente manera:
+Ya podemos desarrollar el enfoque tomado en este algoritmo, siguiendo las ideas descritas en \cite{Dimov2005}. Consideramos la función $t:\mathds{R}^3\times \mathds{S}^2\rightarrow \mathds{R}^3$ que asigna a cada rayo (definido por su punto inicial y su dirección) su intersección más cercana con la escena. Es fácil ver que entonces $L_i(p,\omega) = L_s(t(p,\omega), -\omega)$, $\forall p\in\mathds{R}^3$, $\forall \omega\in\mathds{S}^2$. Por tanto, notando $L=L_s$ por comodidad, y fijando $p\in\mathds{R}^3$, podemos reescribir la ecuación de la siguiente manera:
 \begin{equation}\label{rendEq2}
 L(p,\omega _o) = L_e(p,\omega_o) + \int _{\mathds{S}^2}f(p,\omega _o, \omega _i) L(t(p,\omega_i), -\omega _i) |n\cdot \omega _i|\text{ }d\mu (\omega _i) 
 \end{equation}

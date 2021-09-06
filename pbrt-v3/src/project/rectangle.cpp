@@ -6,7 +6,6 @@
 
 namespace pbrt {
 
-
 Rectangle::Rectangle(const Transform *ObjectToWorld, const Transform *WorldToObject,
                      bool reverseOrientation, Float width, Float height, int samplingMode)
     : Shape(ObjectToWorld, WorldToObject, reverseOrientation),
@@ -68,7 +67,7 @@ bool Rectangle::IntersectP(const Ray &r, bool testAlphaTexture) const {
     Ray ray = (*WorldToObject)(r, &oErr, &dErr);
     
     Bounds3f rectangle= Bounds3f(Point3f(-width*0.5, -height*0.5, 0),
-                    							Point3f(width*0.5, height*0.5, 0));
+                    			Point3f(width*0.5, height*0.5, 0));
 
     // Reject rectangle intersections for rays parallel to the rectangle's plane
     if (ray.d.z == 0) return false;
@@ -90,6 +89,7 @@ Interaction Rectangle::Sample(const Point2f &u, Float *pdf) const {
     return it;
 }
 
+//Función que calcula los parámetros usados posteriormente
 void ComputeSphRectangleData(SphRectangleData *data, const Point3f &o){
     
     data->o= o;
@@ -112,12 +112,12 @@ void ComputeSphRectangleData(SphRectangleData *data, const Point3f &o){
     Vector3f v01 = Vector3f(data->x0, data->y1, data->z0);
     Vector3f v10 = Vector3f(data->x1, data->y0, data->z0);
     Vector3f v11 = Vector3f(data->x1, data->y1, data->z0);
-    // compute normals to edges
+    //Calcular las normales a los planos laterales de la pirámide
     Vector3f n0 = Normalize(Cross(v00, v10));
     Vector3f n1 = Normalize(Cross(v10, v11));
     Vector3f n2 = Normalize(Cross(v11, v01));
     Vector3f n3 = Normalize(Cross(v01, v00));
-    // compute internal angles (gamma_i)
+    //Calcular los ángulos internos de la pirámide (gamma_i)
     Float g0 = std::acos(-Dot(n0,n1));
     Float g1 = std::acos(-Dot(n1,n2));
     Float g2 = std::acos(-Dot(n2,n3));
@@ -132,20 +132,24 @@ void ComputeSphRectangleData(SphRectangleData *data, const Point3f &o){
 
 Interaction Rectangle::Sample(const Interaction &ref, const Point2f &u, Float *pdf) const{
     if(samplingMode == 1){
-        Point3f pObj(width*(u[0]-0.5), height*(u[1]-0.5), 0);   
-        Interaction it;
-        it.n = Normalize((*ObjectToWorld)(Normal3f(0, 0, 1)));
-        if (reverseOrientation) it.n *= -1;
-        it.p = (*ObjectToWorld)(pObj, Vector3f(0, 0, 0), &it.pError);
-        *pdf = 1 / Area();
-        return it;
+        Interaction intr = Sample(u, pdf);
+        Vector3f wi = intr.p - ref.p;
+        if (wi.LengthSquared() == 0)
+            *pdf = 0;
+        else {
+            wi = Normalize(wi);
+            // Convert from area measure, as returned by the Sample() call
+            // above, to solid angle measure.
+            *pdf *= DistanceSquared(ref.p, intr.p) / AbsDot(intr.n, -wi);
+            if (std::isinf(*pdf)) *pdf = 0.f;
+        }
+        return intr;
     }else{
-    
         //Area-preserving parametrization
 
         SphRectangleData *sphRectData;
 
-        //Initialize constant spherical rectangle data
+        //1. Initializamos el sistema de referencia y los parámetros usados 
         sphRectData = new SphRectangleData;
         sphRectData->x=(*ObjectToWorld)(Vector3f(1, 0, 0));
         sphRectData->y=(*ObjectToWorld)(Vector3f(0, 1, 0));
@@ -160,22 +164,23 @@ Interaction Rectangle::Sample(const Interaction &ref, const Point2f &u, Float *p
         Float fu = (std::cos(au) * sphRectData->b0 - sphRectData->b1) / std::sin(au);
         Float cu = 1/std::sqrt(fu*fu + sphRectData->b0sq) * (fu>0 ? +1 : -1);
         cu = Clamp(cu, -1, 1); // avoid NaNs
-        // 2. compute ’xu’
+        // 2. Calculamos ’xu’
         Float xu = -(cu * sphRectData->z0) / std::sqrt(1 - cu*cu);
         xu = Clamp(xu, sphRectData->x0, sphRectData->x1); // avoid Infs
-        // 3. compute ’yv’
+        // 3. Calculamos ’yv’
         Float d = std::sqrt(xu*xu + sphRectData->z0sq);
         Float h0 = sphRectData->y0 / std::sqrt(d*d + sphRectData->y0sq);
         Float h1 = sphRectData->y1 / std::sqrt(d*d + sphRectData->y1sq);
         Float hv = h0 + u[1] * (h1-h0), hv2 = hv*hv;
         Float yv = (hv2 < OneMinusEpsilon) ? (hv*d)/std::sqrt(1-hv2) : sphRectData->y1;
-        // 4. transform (xu,yv,z0) to world coords
+        // 4. Transformamos (xu,yv,z0) a coordenadas del mundo
         Interaction it;
         it.p = sphRectData->o + sphRectData->x*xu + yv*sphRectData->y + sphRectData->z0*sphRectData->z;
 
         it.n = Normalize((*ObjectToWorld)(Normal3f(0, 0, 1)));
         if (reverseOrientation) it.n *= -1;
 
+        //Si el punto pertenece a la fuente de luz no tenemos en cuenta la muestra
         if ((it.p-ref.p).LengthSquared() == 0)
             *pdf = 0;
         else {
@@ -184,6 +189,49 @@ Interaction Rectangle::Sample(const Interaction &ref, const Point2f &u, Float *p
         }
 
         return it;
+    }
+}
+
+Float Rectangle::Pdf(const Interaction &ref, const Vector3f &wi) const {
+    if(samplingMode==1){
+        // Intersect sample ray with area light geometry
+        Ray ray = ref.SpawnRay(wi);
+        Float tHit;
+        SurfaceInteraction isectLight;
+        // Ignore any alpha textures used for trimming the shape when performing
+        // this intersection. Hack for the "San Miguel" scene, where this is used
+        // to make an invisible area light.
+        if (!Intersect(ray, &tHit, &isectLight, false)) return 0;
+
+        // Convert light sample weight to solid angle measure
+        Float pdf = DistanceSquared(ref.p, isectLight.p) /
+                    (AbsDot(isectLight.n, -wi) * Area());
+        if (std::isinf(pdf)) pdf = 0.f;
+        return pdf;
+    }else{
+        Ray ray = ref.SpawnRay(wi);
+        Float tHit;
+        SurfaceInteraction isectLight;
+        if (!Intersect(ray, &tHit, &isectLight, false)) return 0;
+
+        //Calculamos la función de densidad respecto al ángulo sólido
+        // en la dirección wi
+        SphRectangleData *sphRectData;
+
+        //1. Initializamos el sistema de referencia y los parámetros usados 
+        sphRectData = new SphRectangleData;
+        sphRectData->x=(*ObjectToWorld)(Vector3f(1, 0, 0));
+        sphRectData->y=(*ObjectToWorld)(Vector3f(0, 1, 0));
+        sphRectData->ex1=width;
+        sphRectData->ey1=height;
+        sphRectData->z=Cross(sphRectData->x, sphRectData->y);
+        sphRectData->s=(*ObjectToWorld)(Point3f(-width*0.5, -height*0.5, 0));
+
+        ComputeSphRectangleData(sphRectData, ref.p);
+
+        Float pdf = 1 / sphRectData->solidAngle;
+        if (std::isinf(pdf)) pdf = 0.f;
+        return pdf;
     }
 }
 
